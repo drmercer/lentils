@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "es2018",
+    "module": "esnext",
+    "strict": true,
+    "noImplicitReturns": true,
+    "noImplicitAny": true,
+    "importHelpers": true,
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "rootDir": "./",
+    "outDir": "../built/",
+    "baseUrl": ".",
+    "composite": true
+  },
+  "files": [],
+  "exclude": [
+    "node_modules",
+    "**/*.spec.ts"
+  ]
+}

@@ -8,14 +8,10 @@
       "scripthost"
     ],
     "types": [
-      "jest",
       "node"
     ]
   },
   "include": [
-    "./**/*.spec.ts",
-  ],
-  "exclude": [
-    "node_modules",
+    "./common/**/*.ts",
   ]
 }
