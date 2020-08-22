@@ -1,0 +1,27 @@
+{
+  "name": "lentils",
+  "version": "0.0.1",
+  "description": "A hodge-podge of useful TypeScript",
+  "scripts": {
+    "test": "jest",
+    "ts-check": "tsc --project tsconfig.jest.json --noEmit"
+  },
+  "author": "Dan Mercer",
+  "private": true,
+  "devDependencies": {
+    "@types/jest": "^26.0.10",
+    "jest": "^26.4.2",
+    "ts-jest": "^26.2.0",
+    "typescript": "^3"
+  },
+  "jest": {
+    "transform": {
+      ".ts": "ts-jest"
+    },
+    "testRegex": "\\.(test|spec)\\.(ts|tsx|js)$",
+    "moduleFileExtensions": [
+      "ts",
+      "js"
+    ]
+  }
+}
