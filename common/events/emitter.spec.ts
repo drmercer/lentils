@@ -20,10 +20,9 @@ describe('Emitter', () => {
 
   it('should warn when a listener is attached multiple times', withExactLogs({
     warn: [
-      'Emitter "my-event": multiple listeners registered that look like "mockConstructor: function () { return fn.apply(this, arguments); }"!'
+      'Emitter "my-event": the "mockConstructor" listener was registered multiple times.'
     ]
   }, () => {
-    process.env.NODE_ENV = 'development';
     const e = new Emitter<MyEvent>('my-event');
     const listener = jest.fn();
 
@@ -34,8 +33,20 @@ describe('Emitter', () => {
     expect(listener).toHaveBeenCalledWith({ foo: "hello" });
   }));
 
+  it('should warn when a listener is removed that was never added', withExactLogs({
+    warn: [
+      'Emitter "my-event": the fn named "mockConstructor" was not found in the current listeners list'
+    ]
+  }, () => {
+    const e = new Emitter<MyEvent>('my-event');
+    const listener = jest.fn();
+
+    e.unlisten(listener);
+
+    expect(listener).not.toHaveBeenCalled();
+  }));
+
   it('should not emit events after unlisten has been called', withNoLogs(() => {
-    process.env.NODE_ENV = 'development';
     const e = new Emitter<MyEvent>('my-event');
     const listener = jest.fn();
 

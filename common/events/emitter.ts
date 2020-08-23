@@ -5,31 +5,23 @@ interface Listener<T> {
   context?: unknown;
 }
 
-function fnToString(f: Function) {
-  return `${f.name}: ${f.toString().replace(/\s+/g, ' ')}`;
-}
-
 export class Emitter<T> {
   private listeners: Listener<T>[] = [];
 
-  private registeredCallbacks: Set<string> | undefined = undefined;
-
   constructor(private name: string) {
-    if (process.env.NODE_ENV === 'development') {
-      this.registeredCallbacks = new Set();
-    }
   }
 
+  /**
+   * Registers a new listener
+   * @param callback
+   * @param context
+   */
   public listen(
     callback: ListenerFn<T>,
     context: unknown = undefined,
   ): void {
-    if (process.env.NODE_ENV === 'development') {
-      const str = fnToString(callback);
-      if (this.registeredCallbacks!.has(str)) {
-        console.warn(`Emitter "${this.name}": multiple listeners registered that look like "${str}"!`);
-      }
-      this.registeredCallbacks!.add(str);
+    if (this.listeners.find(l => l.callback == callback)) {
+      console.warn(`Emitter "${this.name}": the "${callback.name}" listener was registered multiple times.`);
     }
 
     this.listeners.push({
@@ -48,26 +40,31 @@ export class Emitter<T> {
     })
   }
 
+  /**
+   * Fires an event
+   * @param event
+   */
   public emit(event: T) {
     for (const l of this.listeners) {
       l.callback.call(l.context, event);
     }
   }
 
+  /**
+   * Unregisters a listener
+   * @param callback
+   * @param context
+   */
   public unlisten(
     callback: ListenerFn<any>,
     context: unknown = undefined,
   ) {
     const sizeBefore = this.listeners.length;
     this.listeners = this.listeners.filter(l => !(l.callback === callback && l.context === context));
-
-    if (process.env.NODE_ENV === 'development') {
-      const sizeAfter = this.listeners.length;
-      if (sizeAfter === sizeBefore) {
-        console.warn(`Emitter "${this.name}": no listener found when unlisten was called with ${fnToString(callback)}`);
-        debugger;
-      }
-      this.registeredCallbacks!.delete(fnToString(callback));
+    const sizeAfter = this.listeners.length;
+    if (sizeAfter === sizeBefore) {
+      console.warn(`Emitter "${this.name}": the fn named "${callback.name}" was not found in the current listeners list`);
+      debugger;
     }
   }
 }
