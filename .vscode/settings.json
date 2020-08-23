@@ -4,5 +4,11 @@
     "sideBar.background": "#332210",
     "activityBar.background": "#251809",
     "activityBarBadge.background": "#884400"
+  },
+  "files.exclude": {
+    "**/node_modules/": true,
+    "**/*.js": true,
+    "**/*.d.ts": true,
+    "**/*.tsbuildinfo": true
   }
 }
