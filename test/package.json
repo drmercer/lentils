@@ -1,0 +1,19 @@
+{
+  "name": "lentils-test",
+  "version": "0.0.1",
+  "description": "Test for lentils",
+  "main": "index.js",
+  "author": "Dan Mercer",
+  "license": "UNLICENSED",
+  "private": true,
+  "scripts": {
+    "test": "./test.sh",
+    "test:node": "tsc -b node/tsconfig.json && node node/index.js",
+    "test:deno": "deno run ../common/types/checks.ts"
+  },
+  "dependencies": {
+    "@types/node": "^14.6.0",
+    "lentils": "../",
+    "typescript": "^4.0.2"
+  }
+}

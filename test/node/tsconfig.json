@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "target": "es2018",
+    "module": "CommonJS",
+    "strict": true,
+    "noImplicitReturns": true,
+    "noImplicitAny": true,
+    "importHelpers": true,
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "rootDir": "./",
+    "baseUrl": ".",
+    "composite": true,
+    "types": [
+      "node"
+    ]
+  },
+  "include": [
+    "*.ts",
+  ],
+  "exclude": [
+    "node_modules"
+  ],
+  "references": [
+    {
+      "path": "../node_modules/lentils/tsconfig.common.json"
+    }
+  ]
+}
