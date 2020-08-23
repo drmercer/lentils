@@ -3,8 +3,12 @@
   "version": "0.0.1",
   "description": "A hodge-podge of useful TypeScript",
   "scripts": {
-    "test": "jest",
+    "test:unit": "jest",
+    "test:integration": "test/test.sh",
     "ts-check": "tsc --project tsconfig.jest.json --noEmit"
+  },
+  "gitHooks": {
+    "pre-commit": "yarn test:unit && yarn test:integration"
   },
   "author": "Dan Mercer",
   "private": true,
@@ -12,7 +16,8 @@
     "@types/jest": "^26.0.10",
     "jest": "^26.4.2",
     "ts-jest": "^26.2.0",
-    "typescript": "^3"
+    "typescript": "^3",
+    "yorkie": "^2.0.0"
   },
   "jest": {
     "transform": {
