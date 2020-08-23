@@ -9,7 +9,7 @@
   "scripts": {
     "test": "./test.sh",
     "test:node": "tsc -b node/tsconfig.json && node node/index.js",
-    "test:deno": "deno run ../common/types/checks.ts"
+    "test:deno": "deno test deno/"
   },
   "dependencies": {
     "@types/node": "^14.6.0",

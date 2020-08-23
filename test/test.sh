@@ -1,6 +1,9 @@
 #!/bin/bash
 
-if [ $PWD == */lentils/test ]; then
+if [[ $PWD == */lentils ]]; then
+	cd ./test
+fi
+if [[ $PWD != */lentils/test ]]; then
 	echo "Error: must be in /lentils/test"
 	exit 123
 fi
