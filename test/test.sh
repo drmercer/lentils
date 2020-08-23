@@ -20,9 +20,6 @@ yarn test:deno
 
 code=$?
 
-cd ../ &&
-yarn unlink
-
 if [ $code == 0 ]; then
   echo "Test passed with status code $code. :)"
 else

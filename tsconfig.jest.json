@@ -15,6 +15,7 @@
   },
   "include": [
     "./**/*.spec.ts",
+    "./jest/**/*.ts",
   ],
   "exclude": [
     "node_modules",
