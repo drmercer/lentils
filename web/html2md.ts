@@ -6,33 +6,40 @@ export function html2md(html: string): string {
     .replace(/\n{3,}/g, '\n\n') // Collapse newlines down to at most 2
 }
 
+const noop: (...args: any[]) => void = () => { };
+const logger = {
+  log: process.env.NODE_ENV !== 'development' ? noop : console.log.bind(console),
+  group: process.env.NODE_ENV !== 'development' ? noop : console.groupEnd.bind(console),
+  groupEnd: process.env.NODE_ENV !== 'development' ? noop : console.group.bind(console),
+}
+
 function element2md(node: Node): string {
   if (node instanceof HTMLImageElement && node.src) {
     // image element - special case because no contents
     // TODO put the title after the src, like [this](example "tada").
     return `![${node.alt || node.title}](${node.src})`;
   } else if (isBlock(node)) {
-    console.log("is block node: <" + node.tagName.toLowerCase() + ">");
+    logger.log("is block node: <" + node.tagName.toLowerCase() + ">");
     // block element
     if (isCode(node)) {
       const fence = '\n```\n';
 
-      console.group("code block <" + node.nodeName + ">");
+      logger.group("code block <" + node.nodeName + ">");
       const contents = Array.from(node.childNodes)
         .map(element2code)
         .join('');
-      console.groupEnd();
+      logger.groupEnd();
 
       const result = '\n' + fence + contents.replace(/^\n*?(\s*\n)?|(\n\s*)?\n*$/, '') + fence + '\n';
-      console.log(`code block <${node.nodeName}> result`, { result });
+      logger.log(`code block <${node.nodeName}> result`, { result });
       return result;
     } else {
 
-      console.group(node.nodeName);
+      logger.group(node.nodeName);
       let contents = Array.from(node.childNodes)
         .map(element2md)
         .join('');
-      console.groupEnd();
+      logger.groupEnd();
 
       const headingLevel = maybeHeadingLevel(node);
       if (headingLevel && contents) {
@@ -43,7 +50,7 @@ function element2md(node: Node): string {
       return contents.replace(/^\s*|\s*$/, '\n\n');
     }
   } else {
-    console.log("is inline node: <" + node.nodeName + ">");
+    logger.log("is inline node: <" + node.nodeName + ">");
     // inline element
     if (isComment(node)) {
       const contents = node.textContent;
@@ -63,26 +70,26 @@ function element2md(node: Node): string {
       after = '](' + node.href.trim() + ')';
     }
     if (isBold(node)) {
-      console.log("bold!");
+      logger.log("bold!");
       before = before + '**';
       after = '**' + after;
     }
     if (isItalic(node)) {
-      console.log("italic!");
+      logger.log("italic!");
       before = before + '_';
       after = '_' + after;
     }
     if (isCode(node)) {
-      console.log("code!");
+      logger.log("code!");
       before = before + '`';
       after = '`' + after;
     }
 
-    console.group(node.nodeName);
+    logger.group(node.nodeName);
     let contents = Array.from(node.childNodes)
       .map(element2md)
       .join('');
-    console.groupEnd();
+    logger.groupEnd();
 
     return contents ? before + contents + after : '';
   }
