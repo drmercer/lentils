@@ -7,6 +7,7 @@ describe('html2md', () => {
   });
 
   it('should work on a large, clean HTML snippet', () => {
+    // from https://jestjs.io/docs/en/asynchronous.html
     expect(html2md(demargin`
       <span><p>You can combine <code>async</code> and <code>await</code> with <code>.resolves</code> or <code>.rejects</code>.</p>
       <pre><code class="hljs css language-js">test(<span class="hljs-string">'the data is peanut butter'</span>, <span class="hljs-keyword">async</span> () =&gt; {
