@@ -14,5 +14,9 @@
   },
   "include": [
     "./common/**/*.ts",
+  ],
+  "exclude": [
+    "node_modules",
+    "**/*.spec.ts"
   ]
 }

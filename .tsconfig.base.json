@@ -12,9 +12,5 @@
     "baseUrl": ".",
     "composite": true
   },
-  "files": [],
-  "exclude": [
-    "node_modules",
-    "**/*.spec.ts"
-  ]
+  "files": []
 }
