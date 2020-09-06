@@ -25,12 +25,10 @@ function element2md(node: Node): string {
       const fence = '\n```\n';
 
       logger.group("code block <" + node.nodeName + ">");
-      const contents = Array.from(node.childNodes)
-        .map(element2code)
-        .join('');
+      const contents = node.textContent || "";
       logger.groupEnd();
 
-      const result = '\n' + fence + contents.replace(/^\n*?(\s*\n)?|(\n\s*)?\n*$/, '') + fence + '\n';
+      const result = '\n' + fence + contents + fence + '\n';
       logger.log(`code block <${node.nodeName}> result`, { result });
       return result;
     } else {
@@ -47,7 +45,7 @@ function element2md(node: Node): string {
         contents = headingPrefix + ' ' + contents.trim();
       }
 
-      return contents.replace(/^\s*|\s*$/, '\n\n');
+      return contents.replace(/\b +\n? */g, ' ').replace(/^\s*|\s*$/, '\n\n');
     }
   } else {
     logger.log("is inline node: <" + node.nodeName + ">");
@@ -92,20 +90,6 @@ function element2md(node: Node): string {
     logger.groupEnd();
 
     return contents ? before + contents + after : '';
-  }
-}
-
-function element2code(node: Node): string {
-  if (isText(node)) {
-    return node.textContent || '';
-  }
-  const contents = Array.from(node.childNodes)
-    .map(element2code)
-    .join('');
-  if (isBlock(node)) {
-    return contents.replace(/^\n*|\n*$/, '\n');
-  } else {
-    return contents;
   }
 }
 
