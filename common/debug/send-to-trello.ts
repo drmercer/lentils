@@ -14,7 +14,7 @@ export function getTrelloAddCardLink(
 ): string {
   // See https://trello.com/add-card for the snippet I reverse-engineered this from.
   return 'https://trello.com/add-card' +
-    '?source=' + encodeURIComponent(props.sourceHost || '') +
+    '?source=' + encodeURIComponent(props.sourceHost || 'danmercer.net') +
     '&mode=popup' +
     (props.attachmentUrl ? '&url=' + encodeURIComponent(props.attachmentUrl) : '') +
     (props.name ? '&name=' + encodeURIComponent(props.name) : '') +
