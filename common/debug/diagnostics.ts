@@ -20,6 +20,9 @@ export function getUserAgent(): string | undefined {
 
 export function getNodeVersion(): string | undefined {
   try {
+    if (!process.version || !process.platform || !process.arch) {
+      return undefined;
+    }
     return `Node ${process.version} on ${process.platform} (${process.arch})`
   } catch (e) {
     return undefined;
