@@ -7,6 +7,7 @@ export interface TrelloNewCardProps {
   description?: string;
   attachmentUrl?: string;
   boardId?: string;
+  listId?: string;
 }
 
 export function getTrelloAddCardLink(
@@ -19,7 +20,8 @@ export function getTrelloAddCardLink(
     (props.attachmentUrl ? '&url=' + encodeURIComponent(props.attachmentUrl) : '') +
     (props.name ? '&name=' + encodeURIComponent(props.name) : '') +
     (props.description ? '&desc=' + encodeURIComponent(props.description.trim()) : '') +
-    (props.boardId ? '&idList=' + encodeURIComponent(props.boardId) : '');
+    (props.boardId ? '&idBoard=' + encodeURIComponent(props.boardId) : '') +
+    (props.listId ? '&idList=' + encodeURIComponent(props.listId) : '');
 }
 
 export function getTrelloErrorReportLink(error: Error, boardId?: string) {
