@@ -29,3 +29,14 @@ export function getNodeVersion(): string | undefined {
 export function getRuntimeName(): string | undefined {
   return getUserAgent() || getNodeVersion();
 }
+
+export function getDeviceType(): string | undefined {
+  const ua = getUserAgent();
+  if (!ua) {
+    return 'Node Program';
+  } else if (ua.match(/\bMobile\b/i)) {
+    return 'Mobile';
+  } else {
+    return 'Desktop';
+  }
+}
