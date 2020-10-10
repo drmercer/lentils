@@ -1,5 +1,5 @@
-import { isString } from "lentils/common/types/checks";
-import { Emitter } from "lentils/common/events/emitter";
+import { isString } from "../../common/types/checks";
+import { Emitter } from "../../common/events/emitter";
 
 try {
   if (!isString('foo')) throw new Error('isString is broken');

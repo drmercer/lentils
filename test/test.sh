@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 if [[ $PWD == */lentils ]]; then
 	cd ./test
 fi
@@ -8,15 +10,8 @@ if [[ $PWD != */lentils/test ]]; then
 	exit 123
 fi
 
-# Link to lentils and install
-cd ../ &&
-yarn link &&
-cd ./test &&
-yarn link lentils &&
-yarn &&
-
 # Test Node
-yarn test:node &&
+yarn test:node
 
 # Test Deno
 yarn test:deno

@@ -1,5 +1,5 @@
-import { isString } from '../node_modules/lentils/common/types/checks.ts';
-import { Emitter } from '../node_modules/lentils/common/events/emitter.ts';
+import { isString } from '../../common/types/checks.ts';
+import { Emitter } from '../../common/events/emitter.ts';
 
 Deno.test("isString is function", () => {
   typeof isString === 'function';

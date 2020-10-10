@@ -23,7 +23,7 @@
   ],
   "references": [
     {
-      "path": "../node_modules/lentils/tsconfig.common.json"
+      "path": "../../tsconfig.common.json"
     }
   ]
 }
