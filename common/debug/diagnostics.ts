@@ -1,13 +1,23 @@
 import { labeledCodeBlock } from "./error";
 
 export function diagnosticMarkdown(): string {
+  const url = getCurrentUrl();
   const userAgent = getUserAgent();
   const nodeVersion = getNodeVersion();
   const timestamp = new Date().toUTCString();
 
-  return (userAgent ? labeledCodeBlock('User Agent', userAgent) : '') +
+  return (url ? labeledCodeBlock('Page URL', url) : '') +
+    (userAgent ? labeledCodeBlock('User Agent', userAgent) : '') +
     (nodeVersion ? labeledCodeBlock('Node version', nodeVersion) : '') +
     labeledCodeBlock('System time', timestamp);
+}
+
+export function getCurrentUrl(): string | undefined {
+  try {
+    return window.location.href.trim();
+  } catch (e) {
+    return undefined;
+  }
 }
 
 export function getUserAgent(): string | undefined {
