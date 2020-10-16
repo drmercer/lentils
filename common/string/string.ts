@@ -8,7 +8,7 @@ export function kebabCase(str: string): string {
     .replace(/^-+|-+$/g, '');
 }
 
-export function leftPad(str: string, width: number, space = ' '): string {
+export function leftPad(str: string | number, width: number, space = ' '): string {
   let result = '' + str;
   while (result.length < width) {
     result = space + result;
