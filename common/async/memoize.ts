@@ -1,15 +1,7 @@
-export function cachedAsync<T>(f: () => Promise<T>): (force?: boolean) => Promise<T> {
-  let promise: Promise<T> | undefined = undefined;
-  return (force?: boolean) => {
-    if (!promise || force) {
-      promise = f().catch((err) => {
-        // clear cache if an error occurs, so the async thing can be redone
-        promise = undefined;
-        throw err;
-      });
-    }
-    return promise;
-  };
+export function cachedAsync<T>(f: () => Promise<T>): () => Promise<T> {
+  return memoize({
+    maxCount: 1, // just in case
+  }, f);
 }
 
 interface MemoizeOptions<A extends unknown[], T> {
