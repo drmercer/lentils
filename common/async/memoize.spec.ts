@@ -63,7 +63,7 @@ describe('memoize', () => {
     type Fn = (a: string, b: number) => Promise<string>;
     const mockFn = jest.fn(async (a: string, b: number) => a + b);
 
-    const maxCacheSize = 5;
+    const maxCacheSize = 3;
 
     const memoizedFn: Fn = memoize({
       maxCount: maxCacheSize,
