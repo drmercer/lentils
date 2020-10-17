@@ -1,4 +1,4 @@
-import { memoize } from './cachedAsync';
+import { memoize } from './memoize';
 
 describe('memoize', () => {
   it('should cache results correctly', async () => {
