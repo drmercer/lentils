@@ -27,46 +27,35 @@ describe('memoize', () => {
     expect(mockFn).toHaveBeenCalledTimes(2);
   });
 
-  it('should impose a default max cache size of 5', async () => {
+  it('should have a default cache size of 1', async () => {
     type Fn = (a: string, b: number) => Promise<string>;
     const mockFn = jest.fn(async (a: string, b: number) => a + b);
     const memoizedFn: Fn = memoize({}, mockFn);
 
-    const defaultMaxCacheSize = 5;
-    for (let i = 0; i < defaultMaxCacheSize; i++) {
-      expect(await memoizedFn('foo', i)).toBe('foo' + i);
-    }
+    expect(await memoizedFn('foo', 1)).toBe('foo1');
+    expect(await memoizedFn('foo', 1)).toBe('foo1');
 
-    expect(mockFn).toHaveBeenCalledTimes(defaultMaxCacheSize);
+    expect(mockFn).toHaveBeenCalledTimes(1);
 
-    // make all the calls again
-    for (let i = 0; i < defaultMaxCacheSize; i++) {
-      expect(await memoizedFn('foo', i)).toBe('foo' + i);
-    }
-    // make the 1st call again
-    expect(await memoizedFn('foo', 0)).toBe('foo' + 0);
-
-    expect(mockFn).toHaveBeenCalledTimes(defaultMaxCacheSize);
-
-    // make a 6th unique call, pushing the first one off the cache
+    // make a different call, pushing the first one off the cache
     expect(await memoizedFn('bagel', 1)).toBe('bagel1');
 
-    expect(mockFn).toHaveBeenCalledTimes(defaultMaxCacheSize + 1);
+    expect(mockFn).toHaveBeenCalledTimes(2);
 
-    // make the 1st call again - should not hit the cache
-    expect(await memoizedFn('foo', 0)).toBe('foo' + 0);
+    // make the 1st call again - should NOT be cached
+    expect(await memoizedFn('foo', 1)).toBe('foo1');
 
-    expect(mockFn).toHaveBeenCalledTimes(defaultMaxCacheSize + 2);
+    expect(mockFn).toHaveBeenCalledTimes(3);
   });
 
-  it('should accept a maxCount option to customize the max cache size', async () => {
+  it('should accept a custom max cache size', async () => {
     type Fn = (a: string, b: number) => Promise<string>;
     const mockFn = jest.fn(async (a: string, b: number) => a + b);
 
     const maxCacheSize = 3;
 
     const memoizedFn: Fn = memoize({
-      maxCount: maxCacheSize,
+      cacheSize: maxCacheSize,
     }, mockFn);
 
     for (let i = 0; i < maxCacheSize; i++) {

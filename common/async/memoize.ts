@@ -1,18 +1,12 @@
-export function cachedAsync<T>(f: () => Promise<T>): () => Promise<T> {
-  return memoize({
-    maxCount: 1, // just in case
-  }, f);
-}
-
 interface MemoizeOptions<A extends unknown[], T> {
   /** defaults to JSON.stringify(args) */
   keyFn?: (...args: A) => string;
   /** defaults to 5 */
-  maxCount?: number
+  cacheSize?: number
 }
 
 const defaultKeyFn = ((...x: unknown[]) => JSON.stringify(x));
-const defaultMaxCount = 5;
+const defaultCacheSize = 1;
 
 export function memoize<A extends unknown[], T>(
   options: MemoizeOptions<A, T>,
@@ -20,7 +14,7 @@ export function memoize<A extends unknown[], T>(
 ): (...args: A) => Promise<T> {
   const {
     keyFn = defaultKeyFn,
-    maxCount = defaultMaxCount,
+    cacheSize = defaultCacheSize,
   } = options;
 
   let cache = new Map<string, Promise<T>>();
@@ -45,9 +39,9 @@ export function memoize<A extends unknown[], T>(
       cacheKeys.push(key);
       cache.set(key, promise);
 
-      // Prune cache to a size of maxCount
-      if (cacheKeys.length > maxCount) {
-        const deleted = cacheKeys.splice(0, cacheKeys.length - maxCount);
+      // Prune cache to a size of cacheSize
+      if (cacheKeys.length > cacheSize) {
+        const deleted = cacheKeys.splice(0, cacheKeys.length - cacheSize);
         for (const keyToDelete of deleted) {
           cache.delete(keyToDelete);
         }
