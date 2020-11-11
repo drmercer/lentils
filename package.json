@@ -28,5 +28,8 @@
       "ts",
       "js"
     ]
+  },
+  "dependencies": {
+    "tslib": "^2.0.3"
   }
 }
