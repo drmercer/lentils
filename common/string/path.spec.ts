@@ -1,4 +1,4 @@
-import { relativePathFromTo } from './path';
+import { relativePathFromTo, resolveRelative } from './path';
 
 describe("relativePathFromTo", () => {
   it('should resolve sibling paths correctly', () => {
@@ -46,3 +46,34 @@ describe("relativePathFromTo", () => {
     expect(relativePathFromTo('/a/b/c/d/e/f/g.txt', '/h/i/j/k.txt')).toBe('../../../../../../h/i/j/k.txt');
   });
 });
+
+describe('resolveRelative', () => {
+  it('should resolve (great-)aunt paths correctly', () => {
+    expect(resolveRelative('a/b/c/d/e.txt', './f.txt')).toBe('a/b/c/d/f.txt');
+    expect(resolveRelative('a/b/c/d/e.txt', '../f.txt')).toBe('a/b/c/f.txt');
+    expect(resolveRelative('a/b/c/d/e.txt', '../../f.txt')).toBe('a/b/f.txt');
+    expect(resolveRelative('a/b/c/d/e.txt', '../../../f.txt')).toBe('a/f.txt');
+  });
+
+  it('should resolve nth-cousin-nth-removed paths correctly', () => {
+    expect(resolveRelative('a/b/c/d/e.txt', './f/g/h/i.txt')).toBe('a/b/c/d/f/g/h/i.txt');
+    expect(resolveRelative('a/b/c/d/e.txt', '../f/g/h/i/j/k.txt')).toBe('a/b/c/f/g/h/i/j/k.txt');
+    expect(resolveRelative('a/b/c/d/e.txt', '../../f/g.txt')).toBe('a/b/f/g.txt');
+    expect(resolveRelative('a/b/c/d/e.txt', '../../../f/g/h.txt')).toBe('a/f/g/h.txt');
+  });
+
+  it('should filter out "." segments', () => {
+    expect(resolveRelative('a/b/c/d/e.txt', './.././././.././././../f.txt')).toBe('a/f.txt');
+    expect(resolveRelative('a/b/c/d/e.txt', '../../../f/./g.txt')).toBe('a/f/g.txt');
+    expect(resolveRelative('a/b/c/d/e.txt', '../../../f/./')).toBe('a/f/');
+  });
+
+  it('should fail nicely when the relative path is too relative', () => {
+    expect(resolveRelative('a/b/c.txt', '../../../f.txt')).toBe(undefined);
+  });
+
+  it('should just return the (cleaned) path when it is not relative', () => {
+    expect(resolveRelative('a/b/c.txt', '/d/e/f.txt')).toBe('/d/e/f.txt');
+    expect(resolveRelative('a/b/c.txt', '/d/./e/f.txt')).toBe('/d/e/f.txt');
+  });
+})
