@@ -1,15 +1,12 @@
 import { walk } from "https://deno.land/std@0.77.0/fs/mod.ts";
 import { dirname, relative } from "https://deno.land/std@0.77.0/path/mod.ts";
-
-async function hasPermission(name: "read"|"write", path: string): Promise<boolean> {
-  return (await Deno.permissions.request({name, path})).state === "granted";
-}
+import { userGrantsFsPermission } from "./permission.unstable.ts";
 
 if (import.meta.main) {
   const configPath = "./denoify.config.json";
   const configDir = dirname(configPath);
 
-  if (!hasPermission("read", configDir)) {
+  if (!userGrantsFsPermission("read", configDir)) {
     console.error(`Error: permission is needed to read the denoify map file '${configPath}'`)
   }
 
@@ -26,11 +23,11 @@ if (import.meta.main) {
 
 export async function transformDir(fromDir: string, toDir: string) {
 
-  if (!hasPermission("read", fromDir)) {
+  if (!userGrantsFsPermission("read", fromDir)) {
     console.error(`Error: permission is needed to read the fromDir '${fromDir}'`);
     Deno.exit(1);
   }
-  if (!hasPermission("write", toDir)) {
+  if (!userGrantsFsPermission("write", toDir)) {
     console.error(`Error: permission is needed to write the toDir '${toDir}'`);
     Deno.exit(1);
   }
