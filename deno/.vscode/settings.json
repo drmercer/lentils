@@ -1,0 +1,6 @@
+{
+  "deno.enable": true,
+  "deno.unstable": true,
+  "eslint.format.enable": false,
+  "eslint.lintTask.enable": false,
+}
