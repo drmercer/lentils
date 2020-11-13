@@ -1,4 +1,0 @@
-{
-  "../common/": "../denoified/common/",
-  "../web/": "../denoified/web/"
-}

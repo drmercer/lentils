@@ -6,14 +6,18 @@ async function hasPermission(name: "read"|"write", path: string): Promise<boolea
 }
 
 if (import.meta.main) {
-  const mapPath = "./denoify-map.json";
+  const configPath = "./denoify.config.json";
+  const configDir = dirname(configPath);
 
-  if (!hasPermission("read", dirname(mapPath))) {
-    console.error(`Error: permission is needed to read the denoify map file '${mapPath}'`)
+  if (!hasPermission("read", configDir)) {
+    console.error(`Error: permission is needed to read the denoify map file '${configPath}'`)
   }
 
-  const map = JSON.parse(await Deno.readTextFile(mapPath));
-  Deno.chdir(dirname(mapPath));
+  const settings = JSON.parse(await Deno.readTextFile(configPath));
+  const map = settings.map;
+
+  // To make sure we resolve the map's relative paths correctly
+  Deno.chdir(configDir);
 
   for (const fromDir of Object.keys(map)) {
     await transformDir(fromDir, map[fromDir]);
@@ -49,6 +53,7 @@ export async function transformDir(fromDir: string, toDir: string) {
 }
 
 function shouldTransform(path: string) {
+  // TODO read these from denoify.config.json
   return path.endsWith('.ts') &&
     !path.endsWith('.d.ts') &&
     !path.endsWith('.spec.ts');
@@ -59,8 +64,9 @@ async function transformFile(fromPath: string, toPath: string) {
   const original = await Deno.readTextFile(fromPath);
   const transformed = original.replace(/^(import [\s\S]*?)(['"];)$/gm, '$1.ts$2');
   await Deno.writeTextFile(toPath, transformed);
+  // TODO(someday) source maps?
 }
 
-// TODO support watch mode
+// TODO watch mode?
 
 console.log("Done");
