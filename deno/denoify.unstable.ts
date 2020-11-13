@@ -21,6 +21,15 @@ if (import.meta.main) {
   }
 }
 
+/**
+ * Recursively traverses the fromDir, transforming all TS files (other than .d.ts and .spec.ts files)
+ * to use Deno-like import extensions, and outputs the result to toDir.
+ *
+ * **USES UNSTABLE DENO APIS**
+ *
+ * @param fromDir
+ * @param toDir
+ */
 export async function transformDir(fromDir: string, toDir: string) {
 
   if (!userGrantsFsPermission("read", fromDir)) {
@@ -56,7 +65,14 @@ function shouldTransform(path: string) {
     !path.endsWith('.spec.ts');
 }
 
-async function transformFile(fromPath: string, toPath: string) {
+/**
+ * Reads the file at fromPath, converts imports to have ".ts" extensions, and then writes
+ * the transformed source to toPath.
+ *
+ * @param fromPath
+ * @param toPath
+ */
+export async function transformFile(fromPath: string, toPath: string) {
   console.log(`Transforming ${fromPath} to ${toPath}`);
   const original = await Deno.readTextFile(fromPath);
   const transformed = original.replace(/^(import [\s\S]*?)(['"];)$/gm, '$1.ts$2');
