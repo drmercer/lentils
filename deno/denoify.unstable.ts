@@ -44,7 +44,6 @@ export async function transformDir(fromDir: string, toDir: string) {
   await Deno.mkdir(toDir, {recursive: true});
   await Deno.remove(toDir, {recursive: true});
   await Deno.mkdir(toDir, {recursive: true});
-  Deno.chdir(fromDir);
 
   for await (const entry of walk(fromDir)) {
     if (entry.isFile && shouldTransform(entry.path)) {

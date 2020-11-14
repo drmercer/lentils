@@ -1,6 +1,6 @@
 {
   "map": {
-    "../common/": "../denoified/common/",
-    "../web/": "../denoified/web/"
+    "../common/": "./denoified-common/",
+    "../web/": "./denoified-web/"
   }
 }
