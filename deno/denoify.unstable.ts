@@ -2,6 +2,14 @@ import { walk } from "https://deno.land/std@0.77.0/fs/mod.ts";
 import { dirname, relative } from "https://deno.land/std@0.77.0/path/mod.ts";
 import { userGrantsFsPermission } from "./permission.unstable.ts";
 
+export interface Config {
+  map: {
+    [fromDir: string]: string;
+  };
+  headerTextPath?: string;
+  headerText?: string;
+}
+
 if (import.meta.main) {
   const configPath = "./denoify.config.json";
   const configDir = dirname(configPath);
@@ -10,15 +18,41 @@ if (import.meta.main) {
     console.error(`Error: permission is needed to read the denoify map file '${configPath}'`)
   }
 
-  const settings = JSON.parse(await Deno.readTextFile(configPath));
-  const map = settings.map;
+  const config: Config = JSON.parse(await Deno.readTextFile(configPath));
 
-  // To make sure we resolve the map's relative paths correctly
+  // To make sure we resolve the config's relative paths correctly
   Deno.chdir(configDir);
 
+  //Load config
+  const map = config.map;
+  const headerText: string = await loadHeaderText(config);
+
+  // Go!
   for (const fromDir of Object.keys(map)) {
-    await transformDir(fromDir, map[fromDir]);
+    await transformDir(
+      fromDir,
+      map[fromDir],
+      async (fromPath: string, toPath: string) => {
+        const original = await Deno.readTextFile(fromPath);
+        const transformed = headerText + original.replace(/^(import [\s\S]*?)(['"];)$/gm, '$1.ts$2');
+        await Deno.writeTextFile(toPath, transformed);
+        // TODO(someday) source maps?
+      },
+    );
   }
+}
+
+async function loadHeaderText(config: Config): Promise<string> {
+  let rawText;
+  if (config.headerTextPath) {
+    rawText = await Deno.readTextFile(config.headerTextPath)
+  } else if (config.headerText) {
+    rawText = config.headerText;
+  } else {
+    // No header
+    return '';
+  }
+  return rawText.trim() + '\n\n';
 }
 
 /**
@@ -30,7 +64,7 @@ if (import.meta.main) {
  * @param fromDir
  * @param toDir
  */
-export async function transformDir(fromDir: string, toDir: string) {
+export async function transformDir(fromDir: string, toDir: string, transformFile: (fromPath: string, toPath: string) => Promise<void>) {
 
   if (!userGrantsFsPermission("read", fromDir)) {
     console.error(`Error: permission is needed to read the fromDir '${fromDir}'`);
@@ -52,6 +86,7 @@ export async function transformDir(fromDir: string, toDir: string) {
       const toSubdir = dirname(toPath);
 
       await Deno.mkdir(toSubdir, {recursive: true});
+      console.log(`Transforming ${fromPath} to ${toPath}`);
       await transformFile(fromPath, toPath);
     }
   }
@@ -62,21 +97,6 @@ function shouldTransform(path: string) {
   return path.endsWith('.ts') &&
     !path.endsWith('.d.ts') &&
     !path.endsWith('.spec.ts');
-}
-
-/**
- * Reads the file at fromPath, converts imports to have ".ts" extensions, and then writes
- * the transformed source to toPath.
- *
- * @param fromPath
- * @param toPath
- */
-export async function transformFile(fromPath: string, toPath: string) {
-  console.log(`Transforming ${fromPath} to ${toPath}`);
-  const original = await Deno.readTextFile(fromPath);
-  const transformed = original.replace(/^(import [\s\S]*?)(['"];)$/gm, '$1.ts$2');
-  await Deno.writeTextFile(toPath, transformed);
-  // TODO(someday) source maps?
 }
 
 // TODO watch mode?

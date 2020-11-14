@@ -2,5 +2,6 @@
   "map": {
     "../common/": "./denoified-common/",
     "../web/": "./denoified-web/"
-  }
+  },
+  "headerText": "// (c) 2020 Dan Mercer"
 }
