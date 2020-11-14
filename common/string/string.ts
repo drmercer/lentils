@@ -18,10 +18,8 @@ export function leftPad(str: string | number, width: number, space = ' '): strin
 
 // A template tag that does the same thing as no tag at all
 export function standardTemplate(parts: TemplateStringsArray, ...interpolations: unknown[]) {
-  if (process.env.NODE_ENV !== 'production') {
-    if (interpolations.length === 1 && isArray(interpolations[0])) {
-      console.warn('You passed an array to standardTemplate. Did you mean to spread it?');
-    }
+  if (interpolations.length === 1 && isArray(interpolations[0])) {
+    console.warn('You passed an array to standardTemplate. Did you mean to spread it?');
   }
   let text = '';
   for (let i = 0; i < parts.length; i++) {
@@ -37,7 +35,7 @@ export function standardTemplate(parts: TemplateStringsArray, ...interpolations:
 export function demargin(parts: TemplateStringsArray | string, ...interpolations: unknown[]) {
   let text: string;
   if (isString(parts)) {
-    if (process.env.NODE_ENV === 'development' && interpolations.length > 0) {
+    if (interpolations.length > 0) {
       throw new Error('Must not call demargin with a regular string and interpolations!');
     }
     text = parts;
