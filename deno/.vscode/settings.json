@@ -3,4 +3,7 @@
   "deno.unstable": true,
   "eslint.format.enable": false,
   "eslint.lintTask.enable": false,
+  "deno.import_intellisense_origins": {
+    "https://deno.land": true
+  },
 }

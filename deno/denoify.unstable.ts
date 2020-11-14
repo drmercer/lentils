@@ -34,7 +34,7 @@ if (import.meta.main) {
       map[fromDir],
       async (fromPath: string, toPath: string) => {
         const original = await Deno.readTextFile(fromPath);
-        const transformed = headerText + original.replace(/^(import [\s\S]*?)(['"];)$/gm, '$1.ts$2');
+        const transformed = headerText + original.replace(/^(import [\s\S]*?(?:[^\.]..|[^tj].|[^s]))(['"];)$/gm, '$1.ts$2');
         await Deno.writeTextFile(toPath, transformed);
         // TODO(someday) source maps?
       },

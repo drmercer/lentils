@@ -1,5 +1,6 @@
 {
   "map": {
+    "./denoify-test/": "./denoified-test/",
     "../common/": "./denoified-common/",
     "../web/": "./denoified-web/"
   },
