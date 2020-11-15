@@ -11,13 +11,13 @@ if [[ $PWD != */lentils/test ]]; then
 fi
 
 # Test Node
-yarn test:node
+npx tsc -b node/tsconfig.json && node node/index.js
 
 # Test Deno
 cd ../deno/
 deno run --unstable --allow-read=.. --allow-write=. ./denoify.unstable.ts
 cd ../test/
-yarn test:deno
+deno test deno/
 
 code=$?
 
