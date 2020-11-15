@@ -1,4 +1,4 @@
-import { walk } from "https://deno.land/std@0.77.0/fs/mod.ts";
+import { walk } from "https://deno.land/std@0.77.0/fs/walk.ts";
 import { dirname, relative } from "https://deno.land/std@0.77.0/path/mod.ts";
 import { userGrantsFsPermission } from "./permission.unstable.ts";
 

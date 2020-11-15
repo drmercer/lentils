@@ -14,6 +14,9 @@ fi
 yarn test:node
 
 # Test Deno
+cd ../deno/
+deno run --unstable --allow-read=.. --allow-write=. ./denoify.unstable.ts
+cd ../test/
 yarn test:deno
 
 code=$?
