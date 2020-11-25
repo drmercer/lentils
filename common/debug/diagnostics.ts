@@ -43,11 +43,14 @@ export function getRuntimeName(): string | undefined {
   return getUserAgent() || getNodeVersion();
 }
 
-export function getDeviceType(): string | undefined {
-  const ua = getUserAgent();
-  if (!ua) {
+export function isMobile(): boolean {
+  return !!getUserAgent()?.match(/\bMobile\b/i);
+}
+
+export function getDeviceType(): string {
+  if (!getUserAgent()) {
     return 'Node Program';
-  } else if (ua.match(/\bMobile\b/i)) {
+  } else if (isMobile()) {
     return 'Mobile';
   } else {
     return 'Desktop';
