@@ -1,10 +1,14 @@
 import { firstDifferentIndex } from "../array/array";
 
-/*
+/**
+ * @module
  * Utilities for handling **Unix-style** paths.
  */
 
-const separator = '/';
+/**
+ * "/", the path segment separator used throughout this file
+ */
+export const separator = '/';
 
 export function pathSegments(path: string): string[] {
   return path.split(separator);
