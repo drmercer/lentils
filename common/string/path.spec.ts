@@ -72,6 +72,11 @@ describe('resolveRelative', () => {
     expect(resolveRelative('a/b/c.txt', '../../../f.txt')).toBe(undefined);
   });
 
+  it('should NOT fail when the relative path is at the limit of relative-ness', () => {
+    expect(resolveRelative('2021/Nov/27/1648-desktop.md', '../../../2020/Nov/17/0032-mobile.md')).toBe('2020/Nov/17/0032-mobile.md');
+    expect(resolveRelative('a/b/c.txt', '../../f.txt')).toBe('f.txt');
+  });
+
   it('should just return the (cleaned) path when it is not relative', () => {
     expect(resolveRelative('a/b/c.txt', '/d/e/f.txt')).toBe('/d/e/f.txt');
     expect(resolveRelative('a/b/c.txt', '/d/./e/f.txt')).toBe('/d/e/f.txt');

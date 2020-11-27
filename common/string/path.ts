@@ -57,7 +57,7 @@ export function resolveRelative(context: string, maybeRelative: string): string 
   }
 
   const contextSegmentsToKeepCount = contextSegments.length - 1 - upwardsStepCount;
-  if (contextSegmentsToKeepCount <= 0) {
+  if (contextSegmentsToKeepCount < 0) {
     return undefined;
   }
 
