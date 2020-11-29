@@ -1,8 +1,10 @@
 interface MemoizeOptions<A extends unknown[], T> {
   /** defaults to JSON.stringify(args) */
   keyFn?: (...args: A) => string;
-  /** defaults to 5 */
-  cacheSize?: number
+  /** defaults to 1 */
+  cacheSize?: number;
+  /** defaults to () => true */
+  keepFn?: (t: T) => boolean;
 }
 
 const defaultKeyFn = ((...x: unknown[]) => JSON.stringify(x));
@@ -15,6 +17,7 @@ export function memoize<A extends unknown[], T>(
   const {
     keyFn = defaultKeyFn,
     cacheSize = defaultCacheSize,
+    keepFn = () => true,
   } = options;
 
   let cache = new Map<string, Promise<T>>();
@@ -29,7 +32,11 @@ export function memoize<A extends unknown[], T>(
         // this is wrapped in a .then() call just in case f throws an error
         return f(...params);
       }).then(result => {
-        cache.set(key, Promise.resolve(result));
+        if (keepFn(result)) {
+          cache.set(key, Promise.resolve(result));
+        } else {
+          cache.delete(key);
+        }
         return result;
       }, err => {
         cache.delete(key);

@@ -83,4 +83,21 @@ describe('memoize', () => {
 
     expect(mockFn).toHaveBeenCalledTimes(maxCacheSize + 2);
   });
+
+  it('should not cache the result if keepFn returns false', async () => {
+    type Fn = (a: string, b: number) => Promise<string>;
+    const mockFn = jest.fn(async (a: string, b: number) => a + b);
+    const memoizedFn: Fn = memoize({
+      keepFn: (t) => t.startsWith('potato'),
+    }, mockFn);
+
+    expect(await memoizedFn('potato', 2)).toBe('potato2');
+    expect(await memoizedFn('potato', 2)).toBe('potato2');
+    expect(mockFn).toHaveBeenCalledTimes(1);
+
+    expect(await memoizedFn('bagel', 2)).toBe('bagel2');
+    expect(mockFn).toHaveBeenCalledTimes(2);
+    expect(await memoizedFn('bagel', 2)).toBe('bagel2');
+    expect(mockFn).toHaveBeenCalledTimes(3);
+  });
 });
