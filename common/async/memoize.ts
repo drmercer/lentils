@@ -1,3 +1,5 @@
+import { isObject, isBoolean } from '../types/checks';
+
 interface MemoizeOptions<A extends unknown[], T> {
   /** defaults to JSON.stringify(args) */
   keyFn?: (...args: A) => string;
@@ -32,6 +34,10 @@ export function memoize<A extends unknown[], T>(
         // this is wrapped in a .then() call just in case f throws an error
         return f(...params);
       }).then(result => {
+        // Specific to Journote, for now:
+        if (isObject(result) && isBoolean(result.success) && !options.keepFn) {
+          console.error("keepFn not specified, but you're returning what looks like a Result");
+        }
         if (keepFn(result)) {
           cache.set(key, Promise.resolve(result));
         } else {
