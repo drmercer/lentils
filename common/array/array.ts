@@ -9,3 +9,15 @@ export function firstDifferentIndex(a: unknown[], b: unknown[]): number | undefi
   }
   return i;
 }
+
+export function unique<T>(a: T[]): T[] {
+  const seen = new Set<T>();
+  return a.filter(el => {
+    if (!seen.has(el)) {
+      seen.add(el);
+      return true;
+    } else {
+      return false;
+    }
+  });
+}
