@@ -1,4 +1,4 @@
-import { compareByKey, compareNumbers, invert } from './comparators';
+import { compareByKey, compareNumbers, compareStrings, invert, lazyMap } from './comparators';
 
 describe('compareByKey', () => {
   it('should sort by a single key correctly', () => {
@@ -68,5 +68,31 @@ describe('invert', () => {
       2,
       1,
     ]);
+  });
+});
+
+
+describe('lazyMap', () => {
+  it('should sort numbers by their mod-3 value', () => {
+    const mapFn = jasmine.createSpy('mapFn').and.callFake((n: number) => n % 3);
+    const arr = [
+      3,
+      0,
+      3,
+      2,
+      1,
+      4,
+      4,
+    ];
+    expect(arr.sort(lazyMap(mapFn, compareStrings))).toEqual([
+      3,
+      0,
+      3,
+      1,
+      4,
+      4,
+      2,
+    ]);
+    expect(mapFn).toHaveBeenCalledTimes(5);
   });
 });
