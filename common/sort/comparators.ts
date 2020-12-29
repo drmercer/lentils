@@ -1,3 +1,6 @@
+/**
+ * A comparison function, as expected by Array.prototype.sort()
+ */
 export type CompareFn<T> = (a: T, b: T) => number;
 
 /**
