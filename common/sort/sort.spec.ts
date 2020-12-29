@@ -1,5 +1,77 @@
 import { compareNumbers } from './../../deno/denoified-common/sort/comparators';
-import { sortedInsertNoDuplicates } from './sort';
+import { binarySearch, sortedInsertNoDuplicates } from './sort';
+
+const randomSortedArray = (length: number) => Array(length).fill(0).map(() => Math.random()).sort(compareNumbers);
+
+describe('binarySearch', () => {
+
+  it('should work on an empty array', () => {
+    const array: number[] = [];
+    const result = binarySearch(array, compareNumbers, 1337);
+    expect(result).toEqual({
+      index: 0,
+      found: false,
+    });
+  });
+
+  it('should work on a basic non-empty array when the needle is NOT in the array', () => {
+    const array = [1337, 1338, 1340];
+    const result = binarySearch(array, compareNumbers, 1339);
+    expect(result).toEqual({
+      index: 2,
+      found: false,
+    });
+  });
+
+  it('should work on a basic non-empty array when the needle IS in the array', () => {
+    const array = [1337, 1338, 1339];
+    const result = binarySearch(array, compareNumbers, 1339);
+    expect(result).toEqual({
+      index: 2,
+      found: true,
+    });
+  });
+
+  it('should work on a large array when the needle is NOT in the array', () => {
+    const array: number[] = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16];
+    const result = binarySearch(array, compareNumbers, 9.5);
+    expect(result).toEqual({
+      index: 9,
+      found: false,
+    });
+  });
+
+  it('should work on a large array when the needle IS in the array', () => {
+    const array: number[] = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17];
+    const result = binarySearch(array, compareNumbers, 1);
+    expect(result).toEqual({
+      index: 0,
+      found: true,
+    });
+  });
+
+  function testRandomArrayWithLength(initialLength: number) {
+    const array: number[] = randomSortedArray(initialLength);
+    const index = Math.floor(Math.random() * array.length);
+    const needle = array[index];
+
+    const result = binarySearch(array, compareNumbers, needle);
+    expect(result).toEqual({
+      index,
+      found: true,
+    });
+  }
+
+  it('should work on a very large random array', () => {
+    testRandomArrayWithLength(1000);
+  });
+
+  it('should work on random arrays of random lengths', () => {
+    Array(100).fill(0).forEach(() => {
+      testRandomArrayWithLength(Math.round(1000 * Math.random()));
+    });
+  });
+})
 
 describe('sortedInsertNoDuplicates', () => {
 
