@@ -102,9 +102,13 @@ export function sortedInsertNoDuplicates<T>(
   compareFn: CompareFn<T>,
   isDuplicate: (a: T, b: T) => boolean,
   newItem: T,
-): void {
+) {
   const {index, found} = binarySearch(sortedArray, compareFn, newItem, isDuplicate);
   if (!found) {
     sortedArray.splice(index, 0, newItem);
   }
+  return {
+    alreadyExisted: found,
+    index,
+  };
 }

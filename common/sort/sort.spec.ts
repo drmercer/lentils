@@ -80,7 +80,11 @@ describe('sortedInsertNoDuplicates', () => {
 
   it('should work on an empty array', () => {
     const array: number[] = [];
-    sortedInsertNoDuplicates(array, compareNumbers, allowDuplicates, 1337);
+    const result = sortedInsertNoDuplicates(array, compareNumbers, allowDuplicates, 1337);
+    expect(result).toEqual({
+      alreadyExisted: false,
+      index: 0,
+    });
     expect(array).toEqual([1337]);
   });
 
@@ -94,8 +98,16 @@ describe('sortedInsertNoDuplicates', () => {
 
   it('should work repeatedly on an initially-empty array with the same newItem, with preventing duplicates', () => {
     const array: number[] = [];
-    sortedInsertNoDuplicates(array, compareNumbers, preventDuplicates, 1337);
-    sortedInsertNoDuplicates(array, compareNumbers, preventDuplicates, 1337);
+    const result1 = sortedInsertNoDuplicates(array, compareNumbers, preventDuplicates, 1337);
+    expect(result1).toEqual({
+      alreadyExisted: false,
+      index: 0,
+    });
+    const result2 = sortedInsertNoDuplicates(array, compareNumbers, preventDuplicates, 1337);
+    expect(result2).toEqual({
+      alreadyExisted: true,
+      index: 0,
+    });
     sortedInsertNoDuplicates(array, compareNumbers, preventDuplicates, 1337);
     expect(array).toEqual([1337]);
   });
