@@ -1,9 +1,9 @@
 {
   "workbench.colorCustomizations": {
-    "statusBar.background": "#884400",
-    "sideBar.background": "#332210",
-    "activityBar.background": "#251809",
-    "activityBarBadge.background": "#884400"
+    "statusBar.background": "#be864e",
+    "sideBar.background": "#ffdfbd",
+    "activityBar.background": "#8d5d26",
+    "activityBarBadge.background": "#be864e"
   },
   "files.exclude": {
     "**/node_modules/": true,
