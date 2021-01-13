@@ -8,7 +8,7 @@
     "ts-check": "tsc --project tsconfig.jest.json --noEmit"
   },
   "gitHooks": {
-    "pre-commit": "yarn test:unit && yarn test:integration"
+    "pre-commit": "scripts/pre-commit.sh"
   },
   "author": "Dan Mercer",
   "private": true,
