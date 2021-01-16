@@ -11,13 +11,7 @@ export function firstDifferentIndex(a: unknown[], b: unknown[]): number | undefi
 }
 
 export function unique<T>(a: T[]): T[] {
-  const seen = new Set<T>();
-  return a.filter(el => {
-    if (!seen.has(el)) {
-      seen.add(el);
-      return true;
-    } else {
-      return false;
-    }
-  });
+  // Set iterates in insertion order, so this is sufficient.
+  // See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set
+  return Array.from(new Set(a));
 }
