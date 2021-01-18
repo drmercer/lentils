@@ -20,6 +20,11 @@
     "yorkie": "^2.0.0"
   },
   "jest": {
+    "globals": {
+      "ts-jest": {
+        "tsconfig": "./tsconfig.jest.json"
+      }
+    },
     "transform": {
       ".ts": "ts-jest"
     },

@@ -1,7 +1,9 @@
 #!/bin/bash
 
+set -e
+
 # Run applicable unit tests
-files=$( git diff --staged --name-only )
+files=$( git status -s | awk '{ print $2 }' )
 if [ -z "$files" ]; then
   echo "Error: No staged files"
   exit 1
