@@ -5,7 +5,13 @@ interface Listener<T> {
   context?: unknown;
 }
 
-export class Emitter<T> {
+export interface ReadonlyEmitter<T> {
+  listen(callback: ListenerFn<T>, context: unknown): void;
+  unlisten(callback: ListenerFn<T>, context: unknown): void;
+  next(): Promise<T>;
+}
+
+export class Emitter<T> implements ReadonlyEmitter<T> {
   private listeners: Listener<T>[] = [];
 
   constructor(private name: string) {
@@ -56,7 +62,7 @@ export class Emitter<T> {
    * @param context
    */
   public unlisten(
-    callback: ListenerFn<any>,
+    callback: ListenerFn<T>,
     context: unknown = undefined,
   ) {
     const sizeBefore = this.listeners.length;
