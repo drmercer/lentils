@@ -1,3 +1,5 @@
+export type Guard<T> = (x: unknown) => x is T;
+
 export function isBoolean(x: unknown): x is boolean {
   return typeof x === 'boolean';
 }
@@ -16,6 +18,12 @@ export function isObject(x: unknown): x is Record<string, unknown> & object {
 
 export function isArray(x: unknown): x is unknown[] {
   return Array.isArray(x);
+}
+
+export function isArrayOf<T>(isT: Guard<T>): (x: unknown) => x is T[] {
+  return (x): x is T[] => {
+    return isArray(x) && x.every(isT);
+  }
 }
 
 export function isFunction(x: unknown): x is Function {
