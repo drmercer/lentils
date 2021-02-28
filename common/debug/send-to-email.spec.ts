@@ -35,12 +35,12 @@ describe('mailto', () => {
     expect(mailto({
       email: 'a@test.test',
       subject: 'Hello world!',
-    })).toEqual('mailto:a@test.test?subject=Hello+world%21');
+    })).toEqual('mailto:a@test.test?subject=Hello%20world!');
 
     expect(mailto({
       email: 'a@test.test',
       body: 'Hello world!',
-    })).toEqual('mailto:a@test.test?body=Hello+world%21');
+    })).toEqual('mailto:a@test.test?body=Hello%20world!');
   });
 
   it('should create a link with multiline body correctly', () => {
@@ -49,27 +49,27 @@ describe('mailto', () => {
       body: `Hello world!
 Second line!
 Third line!`,
-    })).toEqual('mailto:a@test.test?body=Hello+world%21%0ASecond+line%21%0AThird+line%21');
+    })).toEqual('mailto:a@test.test?body=Hello%20world!%0ASecond%20line!%0AThird%20line!');
   });
 
   it('should create a link with subject/body and no email correctly', () => {
     expect(mailto({
       body: `The body`,
-    })).toEqual('mailto:?body=The+body');
+    })).toEqual('mailto:?body=The%20body');
 
     expect(mailto({
       subject: `The subject`,
-    })).toEqual('mailto:?subject=The+subject');
+    })).toEqual('mailto:?subject=The%20subject');
 
     expect(mailto({
       subject: `The subject`,
       body: `The body`,
-    })).toEqual('mailto:?subject=The+subject&body=The+body');
+    })).toEqual('mailto:?subject=The%20subject&body=The%20body');
   });
 
   it('should create a link with a body containing emojis correctly', () => {
     expect(mailto({
       body: `Hello 🥯! Hi there, 🥔!`,
-    })).toEqual('mailto:?body=Hello+%F0%9F%A5%AF%21+Hi+there%2C+%F0%9F%A5%94%21');
+    })).toEqual('mailto:?body=Hello%20%F0%9F%A5%AF!%20Hi%20there%2C%20%F0%9F%A5%94!');
   });
 });
