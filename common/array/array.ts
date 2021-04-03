@@ -15,3 +15,10 @@ export function unique<T>(a: T[]): T[] {
   // See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set
   return Array.from(new Set(a));
 }
+
+export function deleteElement<T>(a: T[], el: T): void {
+  const index = a.indexOf(el);
+  if (index !== -1) {
+    a.splice(index, 1);
+  }
+}

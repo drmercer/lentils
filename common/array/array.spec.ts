@@ -1,4 +1,4 @@
-import { firstDifferentIndex, unique } from './array';
+import { deleteElement, firstDifferentIndex, unique } from './array';
 
 describe("firstDifferentIndex", () => {
   it('should find the first differing index', () => {
@@ -49,10 +49,25 @@ describe("unique", () => {
   });
 
   it('should work on arrays of non-primitives', () => {
-    const a = {n: 1};
-    const b = {n: 1}; // note - the same structure, but different instances, so b should still be in the result
+    const a = { n: 1 };
+    const b = { n: 1 }; // note - the same structure, but different instances, so b should still be in the result
     const input = [a, a, a, b, b, a, b];
     const output = unique(input);
     expect(output).toEqual([a, b]);
   });
+});
+
+describe("deleteElement", () => {
+  it('should mutate the given array by deleting the given element', () => {
+    const input = [1, 2, 3, 4];
+    deleteElement(input, 3);
+    expect(input).toEqual([1, 2, 4]);
+  });
+
+  it('should do nothing if the given array does not contain the given element', () => {
+    const input = [1, 2, 3, 4];
+    deleteElement(input, 7);
+    expect(input).toEqual([1, 2, 3, 4]);
+  });
+
 });
