@@ -60,17 +60,13 @@ class ClassBased2 {
 // then override it in the injector if needed
 const OptionalA: InjectKey<A | undefined> = injectable('OptionalA', () => undefined);
 
-// This demonstrates another advanced usage - injecting the injector. This allows C to do injection at
-// runtime by calling injector.get(). TODO is there even a reason to do this now that we have inject()...?
 const C = injectable('C', (inject) => {
   const a = inject(A);
   const b = inject(B);
-  const injector = inject(Injector.Self);
   const cb2 = inject(ClassBased2);
   const maybeA = inject(OptionalA);
   return {
     bagel: 'c' + a.foo + b.bar,
-    injector,
     hasOptionalA: maybeA !== undefined,
     cb2a: cb2.a,
     cb2,
@@ -122,7 +118,6 @@ describe('injector v2', () => {
     expect(c.bagel).toEqual('caba');
 
     expect(b.getA()).toBe(a);
-    expect(c.injector).toBe(injector);
     expect(c.hasOptionalA).toBe(false);
     expect(c.cb2a).toBe(a);
     expect(c.cb2).toBe(cb2);
@@ -142,7 +137,6 @@ describe('injector v2', () => {
     expect(c.bagel).toEqual('ca2ba2');
 
     expect(b.getA()).toBe(a);
-    expect(c.injector).toBe(injector);
   })
 
   it('should allow overriding with key (optional dep, for demonstration)', () => {
@@ -167,7 +161,6 @@ describe('injector v2', () => {
     expect(c.bagel).toEqual('cAbA');
 
     expect(b.getA()).toBe(a);
-    expect(c.injector).toBe(injector);
   })
 
   it('should throw if override loop exists', () => {

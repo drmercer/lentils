@@ -89,8 +89,6 @@ export function override<T>(overridden: InjectKey<T>) {
 }
 
 export class Injector {
-  public static Self: InjectKey<Injector> = new InjectKey('Injector');
-
   private instances: WeakMap<AbstractInjectKey<unknown>, any> = new WeakMap();
   private overrides: Map<InjectKey<unknown>, InjectKey<unknown>>;
 
@@ -116,9 +114,6 @@ export class Injector {
     }
     if (this.instances.has(key)) {
       return this.instances.get(key);
-    }
-    if (key === Injector.Self as AbstractInjectKey<unknown>) {
-      return this as unknown as T;
     }
     if (key === Injector as Constructor<unknown>) {
       // Compat
