@@ -49,6 +49,7 @@ class ClassBased2 {
   constructor(
     public cb1: ClassBased1,
     @UseInjectKey(A) public a: A,
+    public injector: Injector,
   ) {
 
   }
@@ -122,6 +123,7 @@ describe('injector v2', () => {
     expect(c.hasOptionalA).toBe(false);
     expect(c.cb2a).toBe(a);
     expect(c.cb2).toBe(cb2);
+    expect(cb2.injector).toBe(injector);
   })
 
   it('should allow overriding with key', () => {

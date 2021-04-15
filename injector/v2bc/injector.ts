@@ -133,6 +133,10 @@ export class Injector {
     if (key === Injector.Self as AbstractInjectKey<unknown>) {
       return this as unknown as T;
     }
+    if (key === Injector as Constructor<unknown>) {
+      // Compat
+      return this as unknown as T;
+    }
     const instance = this.create(key);
     this.instances.set(key, instance);
     return instance;
