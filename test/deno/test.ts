@@ -37,7 +37,8 @@ Deno.test("Injector v2 works", () => {
     };
   });
 
-  const B = injectable('B', A, (a) => {
+  const B = injectable('B', (inject) => {
+    const a = inject(A);
     function getA(): unknown {
       return a;
     }
@@ -48,10 +49,11 @@ Deno.test("Injector v2 works", () => {
     };
   });
 
-  const C = injectable('C', A, B, Injector.Self, (a, b, injector) => {
+  const C = injectable('C', (inject) => {
+    const a = inject(A);
+    const b = inject(B);
     return {
       bagel: 'c' + a.foo + b.bar,
-      injector,
     };
   });
 
@@ -64,6 +66,5 @@ Deno.test("Injector v2 works", () => {
   assertEquals(c.bagel, 'caba');
 
   assertEquals(b.getA(), a);
-  assertEquals(c.injector, injector);
 
 });

@@ -52,32 +52,19 @@ class InjectKey<T> {
 export type { InjectKey };
 
 export type InjectedValue<K extends AbstractInjectKey<unknown>> = K extends AbstractInjectKey<infer T> ? T : never;
-
-type DepValues<DepKeys extends readonly AbstractInjectKey<unknown>[]> = {
-  [K in keyof DepKeys]: DepKeys[K] extends AbstractInjectKey<unknown> ? InjectedValue<DepKeys[K]> : never;
-}
-
 interface InjectableData<T> {
-  deps: readonly AbstractInjectKey<unknown>[];
-  factory: (...args: any) => T;
+  factory: (inject: <U>(key: AbstractInjectKey<U>) => U) => T;
 }
 
 const metadata = new WeakMap<InjectKey<unknown>, InjectableData<unknown>>();
 
-export function injectable<T, DepKeys extends readonly AbstractInjectKey<unknown>[]>(
+export function injectable<T>(
   name: string,
-  // Makes me sad that this signature isn't very clean, but at least it's user-friendly and doesn't require "as const"
-  ...rest: [
-    ...deps: DepKeys,
-    factory: (...args: DepValues<DepKeys>) => T,
-  ]
+  factory: (inject: <U>(key: AbstractInjectKey<U>) => U) => T,
 ): InjectKey<T> {
-  const deps = rest.slice(0, -1);
-  const [factory] = rest.slice(-1);
   const key = new InjectKey<T>(name);
   metadata.set(key, {
-    deps: deps as unknown as DepKeys,
-    factory: factory as (...args: DepValues<DepKeys>) => T,
+    factory,
   });
   return key;
 }
@@ -95,15 +82,13 @@ export function override<T>(overridden: InjectKey<T>) {
     withValue(value: T): Override<T> {
       return {
         overridden,
-        overrider: injectable<T, []>(`<explicit value overriding ${overridden.injectableName}>`, () => value),
+        overrider: injectable<T>(`<explicit value overriding ${overridden.injectableName}>`, () => value),
       };
     },
   };
 }
 
 export class Injector {
-  public static Self: InjectKey<Injector> = new InjectKey('Injector');
-
   private instances: WeakMap<AbstractInjectKey<unknown>, any> = new WeakMap();
   private overrides: Map<InjectKey<unknown>, InjectKey<unknown>>;
 
@@ -130,9 +115,6 @@ export class Injector {
     if (this.instances.has(key)) {
       return this.instances.get(key);
     }
-    if (key === Injector.Self as AbstractInjectKey<unknown>) {
-      return this as unknown as T;
-    }
     if (key === Injector as Constructor<unknown>) {
       // Compat
       return this as unknown as T;
@@ -152,9 +134,8 @@ export class Injector {
       }
       return new key(...params);
     } else {
-      const { factory, deps } = metadata.get(key) as InjectableData<T>;
-      const depValues = deps.map(dep => this.get(dep));
-      return factory(...depValues);
+      const { factory } = metadata.get(key) as InjectableData<T>;
+      return factory(this.get.bind(this));
     }
   }
 
