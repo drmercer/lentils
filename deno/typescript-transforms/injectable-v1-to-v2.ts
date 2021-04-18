@@ -41,7 +41,8 @@ export function transform(source: string): string {
     }
     if (ts.isImportDeclaration(statement)) {
       let text = statement.getText()
-      if (text.includes("/v1/injector")) {
+      const injectorPathRegex = /\/v[12](bc)?\/injector/;
+      if (injectorPathRegex.test(text)) {
         if (!/\binjectable\b/.test(text)) {
           text = text.replace(/(\s*\})/, ", injectable$1");
         }
@@ -49,7 +50,7 @@ export function transform(source: string): string {
           text = text.replace(/(\s*\})/, ", InjectedValue$1");
         }
         text = text
-          .replace("/v1/injector", "/v2bc/injector")
+          .replace(injectorPathRegex, "/v2bc/injector")
           .replace(/\bInjectable(?:,\s*)?/, '')
         return [statement, text];
       }
