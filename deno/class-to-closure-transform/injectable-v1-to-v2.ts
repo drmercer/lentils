@@ -4,47 +4,51 @@ import { demargin } from '../denoified-common/string/string.ts';
 import ts from './typescript.ts';
 import type { ts as TS } from './typescript.ts';
 
-console.log("Running...");
+if (import.meta.main) {
+  console.log("Running...");
 
-const file = Deno.args[0];
+  const file = Deno.args[0];
 
-const source = await Deno.readTextFile(file);
+  const source = await Deno.readTextFile(file);
 
-const sourceFile = ts.createSourceFile(file, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
-// console.log(Deno.inspect(sourceFile, {
-//   colors: true,
-//   depth: 10,
-// }));
+  console.log(transform(source));
+}
 
-const updatedStatements = sourceFile.statements.map((statement): ([TS.Statement, string] | undefined) => {
-  if (ts.isClassDeclaration(statement) && statement.decorators?.[0]) {
-    const injectableDecorator = statement.decorators.find(node => {
-      return ts.isCallExpression(node.expression) &&
-        ts.isIdentifier(node.expression.expression) &&
-        node.expression.expression.escapedText === "Injectable";
-    });
-    if (injectableDecorator) {
-      const name = statement.name?.escapedText ?? "<unnamed>";
-      console.log(`Found @Injectable class ${name}`);
-      const newStatements = injectableClassToInjectableFunction(statement);
-      return [statement, newStatements];
+export function transform(source: string) {
+  const sourceFile = ts.createSourceFile("yeet.ts", source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
+  // console.log(Deno.inspect(sourceFile, {
+  //   colors: true,
+  //   depth: 10,
+  // }));
+
+  const updatedStatements = sourceFile.statements.map((statement): ([TS.Statement, string] | undefined) => {
+    if (ts.isClassDeclaration(statement) && statement.decorators?.[0]) {
+      const injectableDecorator = statement.decorators.find(node => {
+        return ts.isCallExpression(node.expression) &&
+          ts.isIdentifier(node.expression.expression) &&
+          node.expression.expression.escapedText === "Injectable";
+      });
+      if (injectableDecorator) {
+        const name = statement.name?.escapedText ?? "<unnamed>";
+        console.log(`Found @Injectable class ${name}`);
+        const newStatements = injectableClassToInjectableFunction(statement);
+        return [statement, newStatements];
+      }
     }
-  }
-  return undefined; // means no change
-});
+    return undefined; // means no change
+  });
 
-// Write results out to file
-
-const results = updatedStatements
-  .filter(isNonNull)
-  .map(([oldStatement, newText]) => {
-    return [oldStatement.getStart(), oldStatement.end, newText] as const;
-  })
-  .reverse()
-  .reduce((src, [start, end, replacement]) => {
-    return src.substring(0, start) + replacement + src.substring(end);
-  }, source);
-console.log(results);
+  return updatedStatements
+    .filter(isNonNull)
+    .map(([oldStatement, newText]) => {
+      return [oldStatement.getStart(), oldStatement.end, newText] as const;
+    })
+    .reverse()
+    .reduce((src, [start, end, replacement]) => {
+      return src.substring(0, start) + replacement + src.substring(end);
+    }, source)
+    .replaceAll(/ +$/gm, '') // trim trailing spaces
+}
 
 function injectableClassToInjectableFunction(statement: TS.ClassDeclaration): string {
   const className = statement.name!.escapedText.toString();
