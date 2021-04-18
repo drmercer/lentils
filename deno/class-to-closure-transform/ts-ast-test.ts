@@ -9,10 +9,18 @@ export default class Foo {
   constructor(
     public bagel: Bagel,
     private potato: Potato,
-  ) {}
+  ) {
+    this.bagel = 'foo';
+  }
 
+  /**
+   * Candy bar
+   */
   private bar = 'hello';
 
+  /**
+   * Some yeets
+   */
   public yeet() {
     console.log("hello", this.bar);
 

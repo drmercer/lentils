@@ -79,19 +79,20 @@ function injectableClassMembersToStatements(members: readonly TS.ClassElement[])
   const transformedMembers: string[] = members
     .map<string>(m => {
       if (ts.isConstructorDeclaration(m)) {
-        return removeThis(nodesText(Array.from(m.body?.statements ?? [])));
+        return demargin(removeThis(nodesText(Array.from(m.body?.statements ?? []))));
       }
       const name: string = !m.name ? "" : ts.isIdentifier(m.name) ? m.name.escapedText.toString() : m.name.toString();
       const isPublic: boolean = !m.modifiers?.some(mod => mod.kind === ts.SyntaxKind.PrivateKeyword);
       if (name && isPublic) {
         exported.push(name);
       }
+      const comment = demargin(m.getSourceFile().text.substr(m.getFullStart(), m.getLeadingTriviaWidth()));
       if (ts.isPropertyDeclaration(m)) {
         // Known bug: non-readonly public properties are not properly exposed
         const isReadonly = isPublic || (m.modifiers?.some(mod => mod.kind === ts.SyntaxKind.ReadonlyKeyword) ?? false);
         const initializer = m.initializer?.getText();
         const type = m.type?.getText();
-        return `${isReadonly ? 'const' : 'let'} ${name}${type ? ': ' + type : ''}${initializer ? ' = ' + initializer : ''};`;
+        return `${comment}${isReadonly ? 'const' : 'let'} ${name}${type ? ': ' + type : ''}${initializer ? ' = ' + initializer : ''};`;
       } else if (ts.isMethodDeclaration(m)) {
         const async: boolean = m.modifiers?.some(mod => mod.kind === ts.SyntaxKind.AsyncKeyword) ?? false;
         const typeParams = m.typeParameters ? `<${nodesText(m.typeParameters)}>` : '';
@@ -101,7 +102,7 @@ function injectableClassMembersToStatements(members: readonly TS.ClassElement[])
           .split('\n')
           .join('\n  ');
         return `
-${async ? 'async' : ''} function ${name}${typeParams}(${params}) {
+${comment}${async ? 'async ' : ''}function ${name}${typeParams}(${params}) {
   ${body}
 }`.trim();
       } else {
