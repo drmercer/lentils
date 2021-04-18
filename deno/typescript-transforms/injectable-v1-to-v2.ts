@@ -14,12 +14,17 @@ if (import.meta.main) {
   console.log(transform(source));
 }
 
-export function transform(source: string) {
+/**
+ * Given TS source of a v1 Injectable, attempts to rewrite it as a v2 injectable.
+ *
+ * Known limitations:
+ * - public properties are assumed to be readonly (because that should be true)
+ * - any occurrence of "this." inside method bodies will be removed, even in strings or comments
+ * - getters/setters are not supported
+ * - injectable() and InjectedValue<> are not properly added to the imports
+ */
+export function transform(source: string): string {
   const sourceFile = ts.createSourceFile("yeet.ts", source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
-  // console.log(Deno.inspect(sourceFile, {
-  //   colors: true,
-  //   depth: 10,
-  // }));
 
   const updatedStatements = sourceFile.statements.map((statement): ([TS.Statement, string] | undefined) => {
     if (ts.isClassDeclaration(statement) && statement.decorators?.[0]) {
@@ -43,7 +48,7 @@ export function transform(source: string) {
     .map(([oldStatement, newText]) => {
       return [oldStatement.getStart(), oldStatement.end, newText] as const;
     })
-    .reverse()
+    .reverse() // indexes count from the beginning so we have to count from the end
     .reduce((src, [start, end, replacement]) => {
       return src.substring(0, start) + replacement + src.substring(end);
     }, source)
