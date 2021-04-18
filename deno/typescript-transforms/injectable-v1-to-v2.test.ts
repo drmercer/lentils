@@ -23,9 +23,9 @@ function src(parts: TemplateStringsArray | string, ...interpolations: unknown[])
 
 Deno.test("it should work", () => {
   const input = src`
-const yeet = 'hi';
+import {Injectable} from 'yeet/v1/injector";
 
-const yeet2 = 'bye';
+const yeet = 'hi';
 
 // test comment
 
@@ -61,9 +61,9 @@ const yeet3 = 'hi';
   `;
   const actual = src(transform(input.text));
   const expected = src`
-const yeet = 'hi';
+import {injectable, InjectedValue} from 'yeet/v2bc/injector";
 
-const yeet2 = 'bye';
+const yeet = 'hi';
 
 // test comment
 

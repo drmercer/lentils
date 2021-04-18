@@ -21,7 +21,6 @@ if (import.meta.main) {
  * - public properties are assumed to be readonly (because that should be true)
  * - any occurrence of "this." inside method bodies will be removed, even in strings or comments
  * - getters/setters are not supported
- * - injectable() and InjectedValue<> are not properly added to the imports
  */
 export function transform(source: string): string {
   const sourceFile = ts.createSourceFile("yeet.ts", source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
@@ -38,6 +37,21 @@ export function transform(source: string): string {
         console.log(`Found @Injectable class ${name}`);
         const newStatements = injectableClassToInjectableFunction(statement);
         return [statement, newStatements];
+      }
+    }
+    if (ts.isImportDeclaration(statement)) {
+      let text = statement.getText()
+      if (text.includes("/v1/injector")) {
+        if (!/\binjectable\b/.test(text)) {
+          text = text.replace(/(\s*\})/, ", injectable$1");
+        }
+        if (!/\bInjectedValue\b/.test(text)) {
+          text = text.replace(/(\s*\})/, ", InjectedValue$1");
+        }
+        text = text
+          .replace("/v1/injector", "/v2bc/injector")
+          .replace(/\bInjectable(?:,\s*)?/, '')
+        return [statement, text];
       }
     }
     return undefined; // means no change
