@@ -11,7 +11,11 @@ if (import.meta.main) {
 
   const source = await Deno.readTextFile(file);
 
-  console.log(transform(source));
+  const transformed = transform(source);
+
+  await Deno.writeTextFile(file, transformed);
+
+  console.log("Done");
 }
 
 /**
@@ -90,12 +94,12 @@ function injectableClassMembersToStatements(members: readonly TS.ClassElement[])
       const name: string = ts.isIdentifier(p.name) ? p.name.escapedText.toString() : p.name.toString();
       const typeName: string = p.type && ts.isTypeReferenceNode(p.type) && ts.isIdentifier(p.type.typeName) && p.type.typeName.escapedText.toString() || "null as any";
       const isPublic = p.modifiers?.some(m => m.kind === ts.SyntaxKind.PublicKeyword) ?? false;
-      return {name, typeName, isPublic};
+      return { name, typeName, isPublic };
     });
-    injections = params.map(({name, typeName}) => {
+    injections = params.map(({ name, typeName }) => {
       return `const ${name} = inject(${typeName});`;
     });
-    const exportedParams = params.filter(({isPublic}) => isPublic).map(({name}) => name);
+    const exportedParams = params.filter(({ isPublic }) => isPublic).map(({ name }) => name);
     exported.push(...exportedParams);
   } else {
     injections = [];
@@ -168,7 +172,7 @@ function nodesText(s: readonly TS.Node[]): string {
   }
 }
 
-function isTruthy<T>(x: T): x is Exclude<T, 0|false|null|undefined|typeof NaN|''> {
+function isTruthy<T>(x: T): x is Exclude<T, 0 | false | null | undefined | typeof NaN | ''> {
   return !!x;
 }
 
