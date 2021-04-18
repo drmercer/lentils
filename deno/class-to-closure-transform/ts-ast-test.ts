@@ -15,6 +15,10 @@ export default class Foo {
 
   public yeet() {
     console.log("hello", this.bar);
+
+    // foo
+
+    console.log("hello", this.bar);
   }
 
   public bar2 = 'hello';
