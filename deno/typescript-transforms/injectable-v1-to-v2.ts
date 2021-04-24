@@ -3,7 +3,7 @@ import { isNonNull } from '../denoified-common/types/checks.ts';
 
 import ts from './typescript.ts';
 import type { ts as TS } from './typescript.ts';
-import { getBoundNames, mapPropertyAccesses, nodesText, parse, transformAll, transformChildren } from "./util.ts";
+import { getBoundNames, mapPropertyAccesses, nodesText, parse, returnedObject, transformAll, transformChildren } from "./util.ts";
 
 if (import.meta.main) {
   console.log("Running...");
@@ -173,16 +173,6 @@ function ctorParamsToInjections(parameters: TS.NodeArray<TS.ParameterDeclaration
     injections,
     exported,
   };
-}
-
-function returnedObject(names: string[]): string {
-  if (names.length === 0) {
-    return 'return {};';
-  }
-  return `
-return {
-  ${names.sort().join(',\n  ')},
-};`.trim();
 }
 
 function removeThisAndDoRenames(node: TS.Node, renames: Map<string, string>): string {

@@ -106,6 +106,16 @@ export function mapStuff(
   })
 }
 
+export function returnedObject(names: string[]): string {
+  if (names.length === 0) {
+    return 'return {};';
+  }
+  return `
+return {
+  ${names.sort().join(',\n  ')},
+};`.trim();
+}
+
 export function nodesText(s: readonly TS.Node[]): string {
   const [s1] = s;
   const s2 = s[s.length - 1];
