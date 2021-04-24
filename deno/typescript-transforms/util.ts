@@ -55,18 +55,24 @@ function insertReplacements(source: string, sourceStart: number, replacements: [
 }
 
 export function mapPropertyAccesses(node: TS.Node, transformFn: (propertyName: string, target: string) => string|undefined): string {
-  return transformChildren(node, (child) => {
-    if (ts.isPropertyAccessExpression(child)) {
-      const target = child.expression.getText();
-      const property = child.name.text;
-      return transformFn(property, target);
-    } else {
-      return mapPropertyAccesses(child, transformFn);
-    }
-  })
+  return mapStuff(node, {
+    propertyAccesses: transformFn,
+  });
 }
 
-export function mapIdentifierUsages(node: TS.Node, transformFn: (identifier: string) => string|undefined): string {
+export function mapIdentifierUsages(node: TS.Node, transformFn: (identifier: string) => string | undefined): string {
+  return mapStuff(node, {
+    identifierUsages: transformFn
+  });
+}
+
+export function mapStuff(
+  node: TS.Node,
+  mappers: {
+    propertyAccesses?: (propertyName: string, target: string) => string | undefined,
+    identifierUsages?: (identifier: string) => string | undefined,
+  } = {},
+): string {
   function shouldTransformIdentifier(node: TS.Identifier | TS.PrivateIdentifier): boolean {
     const parent = node.parent;
     if (ts.isFunctionDeclaration(parent)) {
@@ -84,14 +90,18 @@ export function mapIdentifierUsages(node: TS.Node, transformFn: (identifier: str
     }
   }
   return transformChildren(node, (child) => {
-    if (ts.isIdentifierOrPrivateIdentifier(child)) {
+    if (mappers.propertyAccesses && ts.isPropertyAccessExpression(child)) {
+      const target = child.expression.getText();
+      const property = child.name.text;
+      return mappers.propertyAccesses(property, target);
+    } else if (mappers.identifierUsages && ts.isIdentifierOrPrivateIdentifier(child)) {
       if (shouldTransformIdentifier(child)) {
-        return transformFn(child.text);
+        return mappers.identifierUsages(child.text);
       } else {
         return undefined;
       }
     } else {
-      return mapIdentifierUsages(child, transformFn);
+      return mapStuff(child, mappers);
     }
   })
 }
