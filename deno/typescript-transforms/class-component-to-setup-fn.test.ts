@@ -25,8 +25,11 @@ import SearchNotes from '../display/searchnotes.vue';
   },
 })
 export default class InternalLinkFlow extends Vue {
+  @DmInject private appRouter!: AppRouter;
+
   private noteChosen(note: Entry) {
     this.$emit('note-chosen', note.path);
+    console.log(this.appRouter);
   }
 }
 </script>
@@ -57,11 +60,15 @@ export default defineComponent({
     SearchNotes,
   },
   setup(props, {emit}) {
+    const appRouter = dmInject(AppRouter);
+
     function noteChosen(note: Entry) {
       emit('note-chosen', note.path);
+      console.log(appRouter);
     }
 
     return {
+      appRouter,
       noteChosen,
     };
   },

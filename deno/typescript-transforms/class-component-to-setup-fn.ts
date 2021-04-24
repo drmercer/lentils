@@ -96,10 +96,16 @@ function classMembersToStatements(members: readonly TS.ClassElement[]): string {
       const newDeclarationName = renamedName || name;
       const comment = demargin(m.getSourceFile().text.substr(m.getFullStart(), m.getLeadingTriviaWidth()));
       if (ts.isPropertyDeclaration(m)) {
-        // Convert to Ref
-        const initializer = m.initializer?.getText();
-        const type = m.type?.getText();
-        return `${comment}const ${newDeclarationName}${type ? ': Ref<' + type + '>' : ''}${initializer ? ' = ref(' + initializer + ')' : ''};`;
+        const isInjectable = m.decorators?.find(d => d.getText().startsWith("@DmInject"));
+        if (isInjectable) {
+          const type = m.type!.getText();
+          return `${comment}const ${newDeclarationName} = dmInject(${type});`;
+        } else {
+          // Convert to Ref
+          const initializer = m.initializer?.getText();
+          const type = m.type?.getText();
+          return `${comment}const ${newDeclarationName}${type ? ': Ref<' + type + '>' : ''}${initializer ? ' = ref(' + initializer + ')' : ''};`;
+        }
       } else if (ts.isMethodDeclaration(m)) {
         const async: boolean = m.modifiers?.some(mod => mod.kind === ts.SyntaxKind.AsyncKeyword) ?? false;
         const typeParams = m.typeParameters ? `<${nodesText(m.typeParameters)}>` : '';
