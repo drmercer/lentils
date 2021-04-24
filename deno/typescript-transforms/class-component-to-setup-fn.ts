@@ -190,52 +190,8 @@ function classMembersToStatements(members: readonly TS.ClassElement[], props: Pr
   renames.set('$emit', 'emit');
 
   const statements = declarations
-    .map<string|undefined>(({member: m, name, renamedName}) => {
-      const newDeclarationName = renamedName || name;
-      const comment = demargin(m.getSourceFile().text.substr(m.getFullStart(), m.getLeadingTriviaWidth()));
-      if (ts.isPropertyDeclaration(m)) {
-        const prop = props.find(p => p.node === m);
-        if (prop) {
-          const {type, name} = prop;
-          return `${comment}const ${newDeclarationName}${type ? ': Ref<' + type + '>' : ''} = computed(() => props.${name});`;
-        } else if (m.decorators?.find(d => d.getText().startsWith("@DmInject"))) {
-          const type = m.type!.getText();
-          return `${comment}const ${newDeclarationName} = dmInject(${type});`;
-        } else {
-          // Convert to Ref
-          const initializer = m.initializer?.getText();
-          const type = m.type?.getText();
-          renames.set(name, newDeclarationName + '.value'); // TODO ew, don't mutate renames, do it a better way
-          return `${comment}const ${newDeclarationName}${type ? ': Ref<' + type + '>' : ''}${initializer ? ' = ref(' + initializer + ')' : ''};`;
-        }
-      } else if (ts.isMethodDeclaration(m)) {
-        const async: boolean = m.modifiers?.some(mod => mod.kind === ts.SyntaxKind.AsyncKeyword) ?? false;
-        const typeParams = m.typeParameters ? `<${nodesText(m.typeParameters)}>` : '';
-        const params = m.parameters ? nodesText(m.parameters) : '';
-        const body = demargin(transformAll(m.body?.statements ?? [], (n) => removeThisAndDoRenames(n, renames)))
-          .trim()
-          .split('\n')
-          .join('\n  ');
-        return `
-${comment}${async ? 'async ' : ''}function ${newDeclarationName}${typeParams}(${params}) {
-  ${body}
-}`.trim();
-      } else if (ts.isGetAccessorDeclaration(m)) {
-        const type = m.type?.getText();
-        const body = demargin(transformAll(m.body?.statements ?? [], (n) => removeThisAndDoRenames(n, renames)))
-          .trim()
-          .split('\n')
-          .join('\n  ');
-        renames.set(name, newDeclarationName + '.value'); // TODO ew, don't mutate renames, do it a better way
-        return `
-${comment}const ${newDeclarationName}${type ? ': Ref<' + type + '>' : ''} = computed(() => {
-  ${body}
-});
-`.trim();
-      } else {
-        console.warn("Unrecognized member kind: ", m.kind);
-        return undefined;
-      }
+    .map<string|undefined>(({member, name}) => {
+      return memberToStatement(member, name, renames, props);
     })
     .filter(isNonNull)
 
@@ -248,6 +204,65 @@ ${comment}const ${newDeclarationName}${type ? ': Ref<' + type + '>' : ''} = comp
     ...statements,
     returnedObject(exports),
   ].join('\n\n');
+}
+
+function memberToStatement(m: TS.ClassElement, name: string, renames: Map<string, string>, props: Prop[]): string|undefined {
+  const newDeclarationName = renames.get(name) || name;
+  const comment = demargin(m.getSourceFile().text.substr(m.getFullStart(), m.getLeadingTriviaWidth()));
+  if (ts.isPropertyDeclaration(m)) {
+    const prop = props.find(p => p.node === m);
+    if (prop) {
+      const { type, name } = prop;
+      return `${comment}const ${newDeclarationName}${type ? ': Ref<' + type + '>' : ''} = computed(() => props.${name});`;
+    } else if (m.decorators?.find(d => d.getText().startsWith("@DmInject"))) {
+      const type = m.type!.getText();
+      return `${comment}const ${newDeclarationName} = dmInject(${type});`;
+    } else {
+      // Convert to Ref
+      const initializer = m.initializer?.getText();
+      const type = m.type?.getText();
+      renames.set(name, newDeclarationName + '.value'); // TODO ew, don't mutate renames, do it a better way
+      return `${comment}const ${newDeclarationName}${type ? ': Ref<' + type + '>' : ''}${initializer ? ' = ref(' + initializer + ')' : ''};`;
+    }
+  } else if (ts.isMethodDeclaration(m)) {
+    const async: boolean = m.modifiers?.some(mod => mod.kind === ts.SyntaxKind.AsyncKeyword) ?? false;
+    const typeParams = m.typeParameters ? `<${nodesText(m.typeParameters)}>` : '';
+    const params = m.parameters ? nodesText(m.parameters) : '';
+    const body = transformBody(m.body, renames);
+    return comment + functionDeclaration(newDeclarationName, params, typeParams, async, body);
+
+  } else if (ts.isGetAccessorDeclaration(m)) {
+    const type = m.type?.getText();
+    const body = transformBody(m.body, renames);
+    renames.set(name, newDeclarationName + '.value'); // TODO ew, don't mutate renames, do it a better way
+    return comment + getterDeclaration(newDeclarationName, body, type);
+  } else {
+    console.warn("Unrecognized member kind: ", m.kind);
+    return undefined;
+  }
+}
+
+function transformBody(body: TS.FunctionBody|undefined, renames: Map<string, string>): string {
+  return demargin(transformAll(body?.statements ?? [], (n) => removeThisAndDoRenames(n, renames)))
+    .trim()
+    .split('\n')
+    .join('\n  ');
+}
+
+function functionDeclaration(name: string, params: string, typeParams: string, async: boolean, body: string) {
+  return `
+${async ? 'async ' : ''}function ${name}${typeParams}(${params}) {
+  ${body}
+}
+`.trim()
+}
+
+function getterDeclaration(name: string, body: string, type?: string): string {
+  return `
+const ${name}${type ? ': Ref<' + type + '>' : ''} = computed(() => {
+  ${body}
+});
+`.trim();
 }
 
 function removeThisAndDoRenames(node: TS.Node, renames: Map<string, string>): string {

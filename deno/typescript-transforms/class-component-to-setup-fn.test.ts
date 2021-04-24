@@ -34,6 +34,7 @@ export default class InternalLinkFlow extends Vue {
     return 'everything';
   }
 
+  // Foo
   public foo: string = 'yeet';
 
   private noteChosen(note: Entry) {
@@ -87,6 +88,7 @@ export default defineComponent({
       return 'everything';
     });
 
+    // Foo
     const foo: Ref<string> = ref('yeet');
 
     function noteChosen(note: Entry) {
