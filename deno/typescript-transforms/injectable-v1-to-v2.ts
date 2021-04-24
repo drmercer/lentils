@@ -60,7 +60,7 @@ export function transform(source: string): string {
       }
     }
     return undefined; // means no change
-  })
+  }).replaceAll(/ +$/gm, '') // trim trailing spaces)
 }
 
 function injectableClassToInjectableFunction(statement: TS.ClassDeclaration): string {

@@ -7,6 +7,7 @@ export function parse(source: string): TS.SourceFile {
 
 export function transformChildren(node: TS.Node, transformFn: (child: TS.Node) => string|undefined): string {
   const source: string = node.getText();
+  const sourceStart: number = node.getStart();
 
   const replacements: [child: TS.Node, replacementText: string][] = [];
 
@@ -24,11 +25,22 @@ export function transformChildren(node: TS.Node, transformFn: (child: TS.Node) =
   return replacements
     .reverse() // indexes count from the beginning so we have to count from the end
     .reduce((src, [child, replacementText]) => {
-      const start = child.getStart();
-      const end = child.end;
+      const start = child.getStart() - sourceStart;
+      const end = child.end - sourceStart;
       return src.substring(0, start) + replacementText + src.substring(end);
-    }, source)
-    .replaceAll(/ +$/gm, '') // trim trailing spaces
+    }, source);
+}
+
+export function mapPropertyAccesses(node: TS.Node, transformFn: (propertyName: string, target: string) => string|undefined): string {
+  return transformChildren(node, (child) => {
+    if (ts.isPropertyAccessExpression(child)) {
+      const target = child.expression.getText();
+      const property = child.name.text;
+      return transformFn(property, target);
+    } else {
+      return mapPropertyAccesses(child, transformFn);
+    }
+  })
 }
 
 export function nodesText(s: readonly TS.Node[]): string {

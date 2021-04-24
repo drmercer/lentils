@@ -1,5 +1,11 @@
 import { assertEquals } from 'https://deno.land/std@0.93.0/testing/asserts.ts';
-import {getBoundNames, parse} from './util.ts';
+import {getBoundNames, mapPropertyAccesses, parse} from './util.ts';
+
+Deno.test('mapPropertyAccesses should work', () => {
+  const sf = parse('function a() { return this.b; }');
+  const result = mapPropertyAccesses(sf, (name, target) => name + '.yeet.' + target);
+  assertEquals(result, 'function a() { return b.yeet.this; }');
+});
 
 Deno.test('getBoundNames should work on a basic statement', () => {
   const sf = parse('const foo = "bar";');
