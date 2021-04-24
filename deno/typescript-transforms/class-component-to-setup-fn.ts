@@ -158,6 +158,11 @@ interface Declaration {
 
 function classMembersToStatements(members: readonly TS.ClassElement[], props: Prop[]): string {
   // TODO support getters/setters
+  // TODO apply route hack automagically
+  // TODO only include setup params that are actually used
+  // TODO import dmInject automagically, and remove DmInject import
+  // TODO convert lifecycle hooks / router hooks appropriately
+  // TODO correctly demargin multiline ref values
   const alreadyUsedNames = new Set<string>();
   members.forEach(m => getBoundNames(m, alreadyUsedNames));
 
