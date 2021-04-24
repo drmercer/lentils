@@ -56,7 +56,7 @@ export default class InternalLinkFlow extends Vue {
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, Ref, computed } from '@vue/composition-api';
+import { Ref, computed, defineComponent, ref } from '@vue/composition-api';
 import { Entry } from '../../../../common/types/entry';
 import SearchNotes from '../display/searchnotes.vue';
 
@@ -99,6 +99,57 @@ export default defineComponent({
 
 <style lang="less" scoped>
 
+</style>
+  `;
+  assertEquals(actual, expected);
+});
+
+Deno.test("it should only include the necessary imports", () => {
+  const input = src`
+<template>
+  <div class="yeet">
+  </div>
+</template>
+
+<script lang="ts">
+import { Component, Vue } from 'vue-property-decorator';
+
+@Component({
+})
+export default class Yeet extends Vue {
+  private hello() {
+    console.log("Hello");
+  }
+}
+</script>
+
+<style lang="less" scoped>
+</style>
+  `;
+  const actual = src(transform(input.text));
+  const expected = src`
+<template>
+  <div class="yeet">
+  </div>
+</template>
+
+<script lang="ts">
+import { defineComponent } from '@vue/composition-api';
+
+export default defineComponent({
+  setup(props, {emit}) {
+    function hello() {
+      console.log("Hello");
+    }
+
+    return {
+      hello,
+    };
+  },
+});
+</script>
+
+<style lang="less" scoped>
 </style>
   `;
   assertEquals(actual, expected);

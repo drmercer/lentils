@@ -27,21 +27,35 @@ export function transform(source: string): string {
 export function transformTs(source: string): string {
   const sourceFile = parse(source);
 
+  const component = sourceFile.statements.find(statement => {
+    return statement.decorators?.find(node => {
+      return node.getText().includes("@Component");
+    });
+  }) as TS.ClassDeclaration;
+
+  if (!component) {
+    throw new Error("Could not find a @Component class!");
+  }
+  const name = component.name?.escapedText ?? "<unnamed>";
+  console.log(`Found @Component class ${name}`);
+
+  const componentDecorator = component.decorators!.find(node => {
+    return node.getText().includes("@Component");
+  })!;
+  const transformedComponent: string = transformComponent(component, componentDecorator);
+
   return transformChildren(sourceFile, (statement: TS.Node) => {
-    if (ts.isClassDeclaration(statement) && statement.decorators) {
-      const name = statement.name?.escapedText ?? "<unnamed>";
-      console.log(`Found class ${name}`);
-      const componentDecorator = statement.decorators.find(node => {
-        return node.getText().includes("@Component");
-      });
-      if (componentDecorator) {
-        const name = statement.name?.escapedText ?? "<unnamed>";
-        console.log(`Found @Component class ${name}`);
-        return transformComponent(statement, componentDecorator);
-      }
+    if (statement === component) {
+      return transformedComponent;
     } else if (ts.isImportDeclaration(statement)) {
       if (/vue-property-decorator|vue-class-component/.test(statement.getText())) {
-        return `import { defineComponent, ref, Ref, computed } from '@vue/composition-api';`;
+        const imports: string[] = [
+          'defineComponent',
+          /\bcomputed\(/.test(transformedComponent) ? 'computed' : undefined,
+          /\bRef</.test(transformedComponent) ? 'Ref' : undefined,
+          /\bref\(/.test(transformedComponent) ? 'ref' : undefined,
+        ].filter(isNonNull).sort();
+        return `import { ${imports.join(', ')} } from '@vue/composition-api';`;
       }
     }
   }).replaceAll(/ +$/gm, '') // trim trailing spaces
