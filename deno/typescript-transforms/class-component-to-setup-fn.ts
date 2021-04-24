@@ -190,7 +190,7 @@ function classMembersToStatements(members: readonly TS.ClassElement[], props: Pr
   renames.set('$emit', 'emit');
 
   const statements = declarations
-    .map(({member: m, name, renamedName}) => {
+    .map<string|undefined>(({member: m, name, renamedName}) => {
       const newDeclarationName = renamedName || name;
       const comment = demargin(m.getSourceFile().text.substr(m.getFullStart(), m.getLeadingTriviaWidth()));
       if (ts.isPropertyDeclaration(m)) {
@@ -222,9 +222,10 @@ ${comment}${async ? 'async ' : ''}function ${newDeclarationName}${typeParams}(${
 }`.trim();
       } else {
         console.warn("Unrecognized member kind: ", m.kind);
-        return '';
+        return undefined;
       }
-    });
+    })
+    .filter(isNonNull)
 
   // Export all declarations, because we can't tell what's used in the template and what's not (at least not without parsing the template)
   const exports = declarations.map(d => {
