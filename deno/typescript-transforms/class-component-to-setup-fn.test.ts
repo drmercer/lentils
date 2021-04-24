@@ -49,6 +49,12 @@ export default class InternalLinkFlow extends Vue {
   // Foo
   public foo: string = 'yeet';
 
+  public async mounted() {
+    console.log("hi");
+    await foo();
+    console.log("bye");
+  }
+
   private noteChosen(note: Entry) {
     this.$emit('note-chosen', note.path);
     console.log(this.appRouter, this.foo);
@@ -73,7 +79,7 @@ export default class InternalLinkFlow extends Vue {
 </template>
 
 <script lang="ts">
-import { Ref, computed, defineComponent, ref } from '@vue/composition-api';
+import { Ref, computed, defineComponent, onMounted, ref } from '@vue/composition-api';
 import { Entry } from '../../../../common/types/entry';
 import SearchNotes from '../display/searchnotes.vue';
 import { dmInject } from '../../composables/injector';
@@ -115,6 +121,12 @@ export default defineComponent({
 
     // Foo
     const foo: Ref<string> = ref('yeet');
+
+    onMounted(async () => {
+      console.log("hi");
+      await foo();
+      console.log("bye");
+    });
 
     function noteChosen(note: Entry) {
       emit('note-chosen', note.path);

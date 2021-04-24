@@ -55,6 +55,7 @@ export function transformTs(source: string): string {
           /\bcomputed\(/.test(transformedComponent) ? 'computed' : undefined,
           /\bRef</.test(transformedComponent) ? 'Ref' : undefined,
           /\bref\(/.test(transformedComponent) ? 'ref' : undefined,
+          /\bonMounted\(/.test(transformedComponent) ? 'onMounted' : undefined,
         ].filter(isNonNull).sort();
         return `import { ${imports.join(', ')} } from '@vue/composition-api';`;
       } else if (/\bDmInject\b/.test(importText)) {
@@ -174,9 +175,10 @@ interface Declaration {
 }
 
 function classMembersToStatements(members: readonly TS.ClassElement[], props: Prop[]): string {
+  // TODO handle template refs (@Ref)
   // TODO apply route hack automagically
   // TODO only include setup params that are actually used
-  // TODO convert lifecycle hooks / router hooks appropriately
+  // TODO convert router hooks appropriately?
   // TODO correctly demargin multiline ref values
   const alreadyUsedNames = new Set<string>();
   members.forEach(m => getBoundNames(m, alreadyUsedNames));
@@ -229,9 +231,13 @@ function classMembersToStatements(members: readonly TS.ClassElement[], props: Pr
     .filter(isNonNull)
 
   // Export all declarations, because we can't tell what's used in the template and what's not (at least not without parsing the template)
-  const exports = declarations.map(d => {
-    return d.name + (d.renamedName ? ': ' + d.renamedName : '');
-  });
+  const exports = declarations
+    .filter(d => {
+      return !(ts.isMethodDeclaration(d.member) && isLifecycleHook(getClassMemberName(d.member)));
+    })
+    .map(d => {
+      return d.name + (d.renamedName ? ': ' + d.renamedName : '');
+    });
 
   return [
     ...statements,
@@ -267,11 +273,15 @@ function memberToStatement(
       return `const ${newDeclarationName}${type ? ': Ref<' + type + '>' : ''}${initializer ? ' = ref(' + initializer + ')' : ''};`;
     }
   } else if (ts.isMethodDeclaration(m)) {
-    const async: boolean = m.modifiers?.some(mod => mod.kind === ts.SyntaxKind.AsyncKeyword) ?? false;
-    const typeParams = m.typeParameters ? `<${nodesText(m.typeParameters)}>` : '';
-    const params = m.parameters ? nodesText(m.parameters) : '';
     const body = transformBody(m.body, renames);
-    return functionDeclaration(newDeclarationName, params, typeParams, async, body);
+    const async: boolean = m.modifiers?.some(mod => mod.kind === ts.SyntaxKind.AsyncKeyword) ?? false;
+    if (isLifecycleHook(name)) {
+      return lifecycleHookDeclaration(name, async, body);
+    } else {
+      const typeParams = m.typeParameters ? `<${nodesText(m.typeParameters)}>` : '';
+      const params = m.parameters ? nodesText(m.parameters) : '';
+      return functionDeclaration(newDeclarationName, params, typeParams, async, body);
+    }
 
   } else if (ts.isGetAccessorDeclaration(m)) {
     const type = m.type?.getText();
@@ -297,6 +307,28 @@ function transformBody(body: TS.FunctionBody|undefined, renames: Map<string, str
 function indent(text: string, levels: number): string {
   const padding = Array.from({ length: levels }, () => '  ').join('');
   return text.replaceAll(/\n/g, '\n' + padding);
+}
+
+function isLifecycleHook(name: string): boolean {
+  return [
+    'beforeCreate',
+    'created',
+    'beforeMount',
+    'mounted',
+    'beforeUpdate',
+    'updated',
+    'beforeDestroy',
+    'destroyed',
+  ].includes(name);
+}
+
+function lifecycleHookDeclaration(hookname: string, async: boolean, body: string) {
+  const hook = hookname.substr(0, 1).toUpperCase() + hookname.substr(1);
+  return `
+on${hook}(${async ? 'async ' : ''}() => {
+  ${indent(body, 1)}
+});
+`.trim()
 }
 
 function functionDeclaration(name: string, params: string, typeParams: string, async: boolean, body: string) {
