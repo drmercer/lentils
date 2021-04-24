@@ -7,6 +7,12 @@ Deno.test('mapPropertyAccesses should work', () => {
   assertEquals(result, 'function a() { return b.yeet.this; }');
 });
 
+Deno.test('mapPropertyAccesses should work with chained property accesses', () => {
+  const sf = parse('function a() { return this.b.foo(); }');
+  const result = mapPropertyAccesses(sf, (name, target) => (name === 'b') ? 'bagel' : undefined);
+  assertEquals(result, 'function a() { return bagel.foo(); }');
+});
+
 Deno.test('mapIdentifierUsages should not affect function names', () => {
   const sf = parse('function a() { return b; }');
   const result = mapIdentifierUsages(sf, (name) => name + '.yeet');

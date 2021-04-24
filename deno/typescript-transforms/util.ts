@@ -93,16 +93,18 @@ export function mapStuff(
     if (mappers.propertyAccesses && ts.isPropertyAccessExpression(child)) {
       const target = child.expression.getText();
       const property = child.name.text;
-      return mappers.propertyAccesses(property, target);
+      const mapped = mappers.propertyAccesses(property, target);
+      if (mapped) {
+        return mapped;
+      }
     } else if (mappers.identifierUsages && ts.isIdentifierOrPrivateIdentifier(child)) {
       if (shouldTransformIdentifier(child)) {
         return mappers.identifierUsages(child.text);
       } else {
         return undefined;
       }
-    } else {
-      return mapStuff(child, mappers);
     }
+    return mapStuff(child, mappers);
   })
 }
 
