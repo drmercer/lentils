@@ -1,6 +1,10 @@
 import ts from './typescript.ts';
 import type { ts as TS } from './typescript.ts';
 
+export function parse(source: string): TS.SourceFile {
+  return ts.createSourceFile("parsed.ts", source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
+}
+
 export function transformChildren(node: TS.Node, transformFn: (child: TS.Node) => string|undefined): string {
   const source: string = node.getText();
 

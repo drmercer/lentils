@@ -1,9 +1,8 @@
-import { isNonNull } from '../denoified-common/types/checks.ts';
 import { demargin } from '../denoified-common/string/string.ts';
 
 import ts from './typescript.ts';
 import type { ts as TS } from './typescript.ts';
-import { transformChildren } from "./util.ts";
+import { parse, transformChildren } from "./util.ts";
 
 if (import.meta.main) {
   console.log("Running...");
@@ -28,7 +27,7 @@ if (import.meta.main) {
  * - getters/setters are not supported
  */
 export function transform(source: string): string {
-  const sourceFile = ts.createSourceFile("yeet.ts", source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
+  const sourceFile = parse(source);
 
   return transformChildren(sourceFile, (statement: TS.Node) => {
     if (ts.isClassDeclaration(statement) && statement.decorators?.[0]) {
