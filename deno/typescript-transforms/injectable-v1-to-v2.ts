@@ -143,7 +143,7 @@ ${comment}${async ? 'async ' : ''}function ${name}${typeParams}(${params}) {
     injections.join('\n'),
     ...transformedMembers,
     returnedObject(exported),
-  ].join('\n\n');
+  ].join('\n\n').trim();
 }
 
 function returnedObject(names: string[]): string {
@@ -174,29 +174,4 @@ function nodesText(s: readonly TS.Node[]): string {
 
 function isTruthy<T>(x: T): x is Exclude<T, 0 | false | null | undefined | typeof NaN | ''> {
   return !!x;
-}
-
-// AST helpers
-
-function constDeclaration(name: string, type?: TS.TypeNode, initializer?: TS.Expression, exported = false) {
-  return ts.factory.createVariableStatement(
-    [
-      exported ? ts.factory.createToken(ts.SyntaxKind.ExportKeyword) : undefined
-    ].filter(isNonNull),
-    ts.factory.createVariableDeclarationList([
-      ts.factory.createVariableDeclaration(name, undefined, type, initializer),
-    ], ts.NodeFlags.Const)
-  );
-}
-
-function todoStatement(message?: string) {
-  return ts.factory.createThrowStatement(
-    ts.factory.createNewExpression(
-      ts.factory.createIdentifier("Error"),
-      undefined,
-      [
-        ts.factory.createStringLiteral("TODO" + (message ? ": " + message : ""), true),
-      ]
-    ),
-  );
 }
