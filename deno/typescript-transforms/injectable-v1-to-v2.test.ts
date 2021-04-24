@@ -46,12 +46,12 @@ export default class Foo {
   /**
    * Some yeets
    */
-  public yeet() {
+  public yeet(bar2: string) {
     console.log("hello", this.bar);
 
     // foo
 
-    console.log("hello", this.bar);
+    console.log("hello", this.bar2, bar2);
   }
 
   public bar2 = 'hello';
@@ -83,19 +83,19 @@ export const Foo = injectable('Foo', (inject) => {
   /**
    * Some yeets
    */
-  function yeet() {
+  function yeet(bar2: string) {
     console.log("hello", bar);
 
     // foo
 
-    console.log("hello", bar);
+    console.log("hello", $bar2, bar2);
   }
 
-  const bar2 = 'hello';
+  const $bar2 = 'hello';
 
   return {
     bagel,
-    bar2,
+    bar2: $bar2,
     yeet,
   };
 });

@@ -1,8 +1,9 @@
 import { demargin } from '../denoified-common/string/string.ts';
+import { isNonNull } from '../denoified-common/types/checks.ts';
 
 import ts from './typescript.ts';
 import type { ts as TS } from './typescript.ts';
-import { mapPropertyAccesses, nodesText, parse, transformAll, transformChildren } from "./util.ts";
+import { getBoundNames, mapPropertyAccesses, nodesText, parse, transformAll, transformChildren } from "./util.ts";
 
 if (import.meta.main) {
   console.log("Running...");
@@ -73,36 +74,67 @@ export const ${className} = injectable('${className}', (inject) => {
 `.trim();
 }
 
+interface Declaration {
+  member: TS.ClassElement;
+  name: string;
+  renamedName?: string;
+  exported: boolean;
+}
+
 function injectableClassMembersToStatements(members: readonly TS.ClassElement[]): string {
+  const alreadyUsedNames = new Set<string>();
+  members.forEach(m => getBoundNames(m, alreadyUsedNames));
   const ctor = members.find(m => ts.isConstructorDeclaration(m)) as TS.ConstructorDeclaration;
   const {exported, injections} = ctor ? ctorParamsToInjections(ctor.parameters) : {exported: [], injections: []};
-  const transformedMembers: string[] = members
-    .map<string>(m => {
+  const declarations: Declaration[] = members
+    .map<Declaration|undefined>(m => {
       if (ts.isConstructorDeclaration(m)) {
-        return demargin(transformAll(m.body?.statements ?? [], removeThis));
+        return;
       }
       const name: string = !m.name ? "" : ts.isIdentifier(m.name) ? m.name.escapedText.toString() : m.name.toString();
       const isPublic: boolean = !m.modifiers?.some(mod => mod.kind === ts.SyntaxKind.PrivateKeyword);
-      if (name && isPublic) {
-        exported.push(name);
+      let renamedName: string|undefined = undefined;
+      while (alreadyUsedNames.has(renamedName || name)) {
+        // need to rename
+        renamedName = '$' + (renamedName || name);
       }
+      return {
+        member: m,
+        name,
+        renamedName,
+        exported: isPublic,
+      };
+    })
+    .filter(isNonNull);
+  const renames = new Map<string, string>(
+    declarations
+      .filter(d => !!d.renamedName)
+      .map(({name, renamedName}) => [name, renamedName!]),
+  );
+  const transformedMembers: string[] = members
+    .map<string>(m => {
+      if (ts.isConstructorDeclaration(m)) {
+        return demargin(transformAll(m.body?.statements ?? [], (n) => removeThisAndDoRenames(n, renames)));
+      }
+      const {name, renamedName, exported: isPublic} = declarations.find(d => d.member === m)!;
+      const newDeclarationName = renamedName || name;
       const comment = demargin(m.getSourceFile().text.substr(m.getFullStart(), m.getLeadingTriviaWidth()));
       if (ts.isPropertyDeclaration(m)) {
         // Known bug: non-readonly public properties are not properly exposed
         const isReadonly = isPublic || (m.modifiers?.some(mod => mod.kind === ts.SyntaxKind.ReadonlyKeyword) ?? false);
         const initializer = m.initializer?.getText();
         const type = m.type?.getText();
-        return `${comment}${isReadonly ? 'const' : 'let'} ${name}${type ? ': ' + type : ''}${initializer ? ' = ' + initializer : ''};`;
+        return `${comment}${isReadonly ? 'const' : 'let'} ${newDeclarationName}${type ? ': ' + type : ''}${initializer ? ' = ' + initializer : ''};`;
       } else if (ts.isMethodDeclaration(m)) {
         const async: boolean = m.modifiers?.some(mod => mod.kind === ts.SyntaxKind.AsyncKeyword) ?? false;
         const typeParams = m.typeParameters ? `<${nodesText(m.typeParameters)}>` : '';
         const params = m.parameters ? nodesText(m.parameters) : '';
-        const body = demargin(transformAll(m.body?.statements ?? [], removeThis))
+        const body = demargin(transformAll(m.body?.statements ?? [], (n) => removeThisAndDoRenames(n, renames)))
           .trim()
           .split('\n')
           .join('\n  ');
         return `
-${comment}${async ? 'async ' : ''}function ${name}${typeParams}(${params}) {
+${comment}${async ? 'async ' : ''}function ${newDeclarationName}${typeParams}(${params}) {
   ${body}
 }`.trim();
       } else {
@@ -111,10 +143,15 @@ ${comment}${async ? 'async ' : ''}function ${name}${typeParams}(${params}) {
       }
     })
     .filter(isTruthy);
+  const allExported = exported.concat(
+    declarations
+      .filter(d => d.exported)
+      .map(d => d.name + (d.renamedName ? ': ' + d.renamedName : '')),
+  );
   return [
     injections.join('\n'),
     ...transformedMembers,
-    returnedObject(exported),
+    returnedObject(allExported),
   ].join('\n\n').trim();
 }
 
@@ -145,10 +182,10 @@ return {
 };`.trim();
 }
 
-function removeThis(node: TS.Node): string {
+function removeThisAndDoRenames(node: TS.Node, renames: Map<string, string>): string {
   return mapPropertyAccesses(node, (propertyName, target) => {
     if (target === 'this') {
-      return propertyName;
+      return renames.get(propertyName) ?? propertyName;
     }
   });
 }
