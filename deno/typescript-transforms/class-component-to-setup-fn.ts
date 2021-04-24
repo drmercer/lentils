@@ -65,17 +65,7 @@ function transformComponent(component: TS.ClassDeclaration, decorator: TS.Decora
   const options: string = ts.isCallExpression(decorator.expression) ? decorator.expression.arguments[0].getText() : `{
 }`;
   const props = findProps(component.members);
-  const propsText = !props.length ? '' : `\n  props: {\n${
-    props
-      .map(p => {
-        const options = [
-          p.default && 'default: ' + p.default,
-          p.required && 'required: ' + p.required,
-          p.runtimeType && 'type: ' + p.runtimeType,
-        ].filter(isNonNull).map(s => '      ' + s + ',\n').join('');
-        return `    ${p.name}: {\n${options}    },`;
-      })
-      .join('\n')    }\n  },`
+  const propsText = buildPropText(props);
   const newOptions = options.replace(/\s*}\s*$/, `${propsText}\n  setup(props, {emit}) {
     ${classMembersToStatements(component.members, props).replaceAll(/\n/g, '\n    ')}
   },
@@ -114,6 +104,30 @@ function findProps(members: readonly TS.ClassElement[]): Prop[] {
       }
     })
     .filter(isNonNull);
+}
+
+function buildPropText(props: Prop[]): string {
+  if (!props.length) {
+    return '';
+  }
+  const propsText = props
+    .map(p => {
+      const options = [
+        p.default && 'default: ' + p.default,
+        p.required && 'required: ' + p.required,
+        p.runtimeType && 'type: ' + p.runtimeType,
+      ].filter(isNonNull).map(s => s + ',').join('\n');
+      return `
+${p.name}: {
+  ${indent(options, 1)}
+},
+`.trim();;
+    })
+    .join('\n');
+  return `
+  props: {
+    ${indent(propsText, 2)}
+  },`
 }
 
 function parseOptions(options: TS.ObjectLiteralExpression) {
