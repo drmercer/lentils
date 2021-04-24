@@ -30,3 +30,38 @@ export function transformChildren(node: TS.Node, transformFn: (child: TS.Node) =
     }, source)
     .replaceAll(/ +$/gm, '') // trim trailing spaces
 }
+
+export function getBoundNames(node: TS.Node): Set<string> {
+  const names = new Set<string>();
+  _getBoundNames(node, names);
+  return names;
+}
+
+function _getBoundNames(node: TS.Node, names: Set<string>): void {
+  if (ts.isVariableDeclaration(node)) {
+    _getBoundNamesFromBindingName(node.name, names);
+  } else if (ts.isFunctionDeclaration(node)) {
+    if (node.name) {
+      names.add(node.name.text);
+    }
+  } else if (ts.isClassLike(node)) {
+    if (node.name) {
+      names.add(node.name.text);
+    }
+  }
+  ts.forEachChild(node, (child) => {
+    _getBoundNames(child, names);
+  });
+}
+
+function _getBoundNamesFromBindingName(node: TS.BindingName, names: Set<string>): void {
+  if (ts.isIdentifier(node)) {
+    names.add(node.text);
+  } else {
+    Array.from(node.elements).map(element => {
+      if (ts.isBindingElement(element)) {
+        _getBoundNamesFromBindingName(element.name, names);
+      }
+    });
+  }
+}
