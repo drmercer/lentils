@@ -31,6 +31,18 @@ export function transformChildren(node: TS.Node, transformFn: (child: TS.Node) =
     .replaceAll(/ +$/gm, '') // trim trailing spaces
 }
 
+export function nodesText(s: readonly TS.Node[]): string {
+  const [s1] = s;
+  const s2 = s[s.length - 1];
+  if (!s1) {
+    return '';
+  } else if (s1 === s2) {
+    return s1.getFullText();
+  } else {
+    return s1.getSourceFile().text.substring(s1.getFullStart(), s2.getEnd());
+  }
+}
+
 export function getBoundNames(node: TS.Node): Set<string> {
   const names = new Set<string>();
   _getBoundNames(node, names);

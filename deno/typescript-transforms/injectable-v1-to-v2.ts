@@ -2,7 +2,7 @@ import { demargin } from '../denoified-common/string/string.ts';
 
 import ts from './typescript.ts';
 import type { ts as TS } from './typescript.ts';
-import { parse, transformChildren } from "./util.ts";
+import { nodesText, parse, transformChildren } from "./util.ts";
 
 if (import.meta.main) {
   console.log("Running...");
@@ -148,18 +148,6 @@ return {
 
 function removeThis(text: string): string {
   return text.replaceAll(/\bthis\./g, ''); // TODO make more robust somehow?
-}
-
-function nodesText(s: readonly TS.Node[]): string {
-  const [s1] = s;
-  const s2 = s[s.length - 1];
-  if (!s1) {
-    return '';
-  } else if (s1 === s2) {
-    return s1.getFullText();
-  } else {
-    return s1.getSourceFile().text.substring(s1.getFullStart(), s2.getEnd());
-  }
 }
 
 function isTruthy<T>(x: T): x is Exclude<T, 0 | false | null | undefined | typeof NaN | ''> {
