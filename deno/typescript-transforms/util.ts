@@ -66,6 +66,36 @@ export function mapPropertyAccesses(node: TS.Node, transformFn: (propertyName: s
   })
 }
 
+export function mapIdentifierUsages(node: TS.Node, transformFn: (identifier: string) => string|undefined): string {
+  function shouldTransformIdentifier(node: TS.Identifier | TS.PrivateIdentifier): boolean {
+    const parent = node.parent;
+    if (ts.isFunctionDeclaration(parent)) {
+      return false;
+    } else if (ts.isClassLike(parent)) {
+      return false;
+    } else if (ts.isParameter(parent)) {
+      return false;
+    } else if (ts.isBindingElement(parent)) {
+      return false;
+    } else if (ts.isPropertyAccessExpression(parent)) {
+      return node === parent.expression;
+    } else {
+      return true;
+    }
+  }
+  return transformChildren(node, (child) => {
+    if (ts.isIdentifierOrPrivateIdentifier(child)) {
+      if (shouldTransformIdentifier(child)) {
+        return transformFn(child.text);
+      } else {
+        return undefined;
+      }
+    } else {
+      return mapIdentifierUsages(child, transformFn);
+    }
+  })
+}
+
 export function nodesText(s: readonly TS.Node[]): string {
   const [s1] = s;
   const s2 = s[s.length - 1];

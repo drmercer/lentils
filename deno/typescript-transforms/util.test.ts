@@ -1,10 +1,40 @@
 import { assertEquals } from 'https://deno.land/std@0.93.0/testing/asserts.ts';
-import {getBoundNames, mapPropertyAccesses, parse} from './util.ts';
+import {getBoundNames, mapIdentifierUsages, mapPropertyAccesses, parse} from './util.ts';
 
 Deno.test('mapPropertyAccesses should work', () => {
   const sf = parse('function a() { return this.b; }');
   const result = mapPropertyAccesses(sf, (name, target) => name + '.yeet.' + target);
   assertEquals(result, 'function a() { return b.yeet.this; }');
+});
+
+Deno.test('mapIdentifierUsages should not affect function names', () => {
+  const sf = parse('function a() { return b; }');
+  const result = mapIdentifierUsages(sf, (name) => name + '.yeet');
+  assertEquals(result, 'function a() { return b.yeet; }');
+});
+
+Deno.test('mapIdentifierUsages should not affect properties accessed', () => {
+  const sf = parse('b.c;');
+  const result = mapIdentifierUsages(sf, (name) => name + '.yeet');
+  assertEquals(result, 'b.yeet.c;');
+});
+
+Deno.test('mapIdentifierUsages should not affect class declarations', () => {
+  const sf = parse('class Foo{ constructor() { b(); } }');
+  const result = mapIdentifierUsages(sf, (name) => name + '.yeet');
+  assertEquals(result, 'class Foo{ constructor() { b.yeet(); } }');
+});
+
+Deno.test('mapIdentifierUsages should not affect function parameters', () => {
+  const sf = parse('function a(b) { return c; }');
+  const result = mapIdentifierUsages(sf, (name) => name + '.yeet');
+  assertEquals(result, 'function a(b) { return c.yeet; }');
+});
+
+Deno.test('mapIdentifierUsages should not affect destructuring', () => {
+  const sf = parse('function a(b) { const {c} = b; }');
+  const result = mapIdentifierUsages(sf, (name) => name + '.yeet');
+  assertEquals(result, 'function a(b) { const {c} = b.yeet; }');
 });
 
 Deno.test('getBoundNames should work on a basic statement', () => {
