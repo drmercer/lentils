@@ -191,7 +191,13 @@ function classMembersToStatements(members: readonly TS.ClassElement[], props: Pr
 
   const statements = declarations
     .map<string|undefined>(({member, name}) => {
-      return memberToStatement(member, name, renames, props);
+      const comment = demargin(member.getSourceFile().text.substr(member.getFullStart(), member.getLeadingTriviaWidth()));
+      const statement = memberToStatement(member, name, renames, props);
+      if (statement) {
+        return comment + statement;
+      } else {
+        return undefined;
+      }
     })
     .filter(isNonNull)
 
@@ -208,34 +214,33 @@ function classMembersToStatements(members: readonly TS.ClassElement[], props: Pr
 
 function memberToStatement(m: TS.ClassElement, name: string, renames: Map<string, string>, props: Prop[]): string|undefined {
   const newDeclarationName = renames.get(name) || name;
-  const comment = demargin(m.getSourceFile().text.substr(m.getFullStart(), m.getLeadingTriviaWidth()));
   if (ts.isPropertyDeclaration(m)) {
     const prop = props.find(p => p.node === m);
     if (prop) {
       const { type, name } = prop;
-      return `${comment}const ${newDeclarationName}${type ? ': Ref<' + type + '>' : ''} = computed(() => props.${name});`;
+      return `const ${newDeclarationName}${type ? ': Ref<' + type + '>' : ''} = computed(() => props.${name});`;
     } else if (m.decorators?.find(d => d.getText().startsWith("@DmInject"))) {
       const type = m.type!.getText();
-      return `${comment}const ${newDeclarationName} = dmInject(${type});`;
+      return `const ${newDeclarationName} = dmInject(${type});`;
     } else {
       // Convert to Ref
       const initializer = m.initializer?.getText();
       const type = m.type?.getText();
       renames.set(name, newDeclarationName + '.value'); // TODO ew, don't mutate renames, do it a better way
-      return `${comment}const ${newDeclarationName}${type ? ': Ref<' + type + '>' : ''}${initializer ? ' = ref(' + initializer + ')' : ''};`;
+      return `const ${newDeclarationName}${type ? ': Ref<' + type + '>' : ''}${initializer ? ' = ref(' + initializer + ')' : ''};`;
     }
   } else if (ts.isMethodDeclaration(m)) {
     const async: boolean = m.modifiers?.some(mod => mod.kind === ts.SyntaxKind.AsyncKeyword) ?? false;
     const typeParams = m.typeParameters ? `<${nodesText(m.typeParameters)}>` : '';
     const params = m.parameters ? nodesText(m.parameters) : '';
     const body = transformBody(m.body, renames);
-    return comment + functionDeclaration(newDeclarationName, params, typeParams, async, body);
+    return functionDeclaration(newDeclarationName, params, typeParams, async, body);
 
   } else if (ts.isGetAccessorDeclaration(m)) {
     const type = m.type?.getText();
     const body = transformBody(m.body, renames);
     renames.set(name, newDeclarationName + '.value'); // TODO ew, don't mutate renames, do it a better way
-    return comment + getterDeclaration(newDeclarationName, body, type);
+    return getterDeclaration(newDeclarationName, body, type);
   } else {
     console.warn("Unrecognized member kind: ", m.kind);
     return undefined;
