@@ -30,6 +30,10 @@ export default class InternalLinkFlow extends Vue {
   @Prop() private yeet!: number;
   @Prop() private yeet2!: 'foo'|'bar';
 
+  public get bagel(): string {
+    return 'everything';
+  }
+
   public foo: string = 'yeet';
 
   private noteChosen(note: Entry) {
@@ -79,6 +83,10 @@ export default defineComponent({
 
     const yeet2: Ref<'foo'|'bar'> = computed(() => props.yeet2);
 
+    const bagel: Ref<string> = computed(() => {
+      return 'everything';
+    });
+
     const foo: Ref<string> = ref('yeet');
 
     function noteChosen(note: Entry) {
@@ -88,6 +96,7 @@ export default defineComponent({
 
     return {
       appRouter,
+      bagel,
       foo,
       noteChosen,
       yeet,

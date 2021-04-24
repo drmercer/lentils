@@ -157,7 +157,7 @@ interface Declaration {
 }
 
 function classMembersToStatements(members: readonly TS.ClassElement[], props: Prop[]): string {
-  // TODO support getters/setters
+  // TODO support setters?
   // TODO apply route hack automagically
   // TODO only include setup params that are actually used
   // TODO import dmInject automagically, and remove DmInject import
@@ -220,6 +220,18 @@ function classMembersToStatements(members: readonly TS.ClassElement[], props: Pr
 ${comment}${async ? 'async ' : ''}function ${newDeclarationName}${typeParams}(${params}) {
   ${body}
 }`.trim();
+      } else if (ts.isGetAccessorDeclaration(m)) {
+        const type = m.type?.getText();
+        const body = demargin(transformAll(m.body?.statements ?? [], (n) => removeThisAndDoRenames(n, renames)))
+          .trim()
+          .split('\n')
+          .join('\n  ');
+        renames.set(name, newDeclarationName + '.value'); // TODO ew, don't mutate renames, do it a better way
+        return `
+${comment}const ${newDeclarationName}${type ? ': Ref<' + type + '>' : ''} = computed(() => {
+  ${body}
+});
+`.trim();
       } else {
         console.warn("Unrecognized member kind: ", m.kind);
         return undefined;
