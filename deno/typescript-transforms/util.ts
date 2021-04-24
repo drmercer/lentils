@@ -108,13 +108,7 @@ export function nodesText(s: readonly TS.Node[]): string {
   }
 }
 
-export function getBoundNames(node: TS.Node): Set<string> {
-  const names = new Set<string>();
-  _getBoundNames(node, names);
-  return names;
-}
-
-function _getBoundNames(node: TS.Node, names: Set<string>): void {
+export function getBoundNames(node: TS.Node, names: Set<string> = new Set()): Set<string> {
   if (ts.isVariableDeclaration(node)) {
     _getBoundNamesFromBindingName(node.name, names);
   } else if (ts.isFunctionDeclaration(node)) {
@@ -129,8 +123,9 @@ function _getBoundNames(node: TS.Node, names: Set<string>): void {
     _getBoundNamesFromBindingName(node.name, names);
   }
   ts.forEachChild(node, (child) => {
-    _getBoundNames(child, names);
+    getBoundNames(child, names);
   });
+  return names;
 }
 
 function _getBoundNamesFromBindingName(node: TS.BindingName, names: Set<string>): void {
