@@ -34,6 +34,14 @@ export default class InternalLinkFlow extends Vue {
     return 'everything';
   }
 
+  public get potato(): string {
+    return 'everything';
+  }
+
+  public set potato(val: string) {
+    console.log(val);
+  }
+
   // Foo
   public foo: string = 'yeet';
 
@@ -88,6 +96,15 @@ export default defineComponent({
       return 'everything';
     });
 
+    const potato: Ref<string> = computed({
+      get: () => {
+        return 'everything';
+      },
+      set: (val: string) => {
+        console.log(val);
+      },
+    });
+
     // Foo
     const foo: Ref<string> = ref('yeet');
 
@@ -101,6 +118,7 @@ export default defineComponent({
       bagel,
       foo,
       noteChosen,
+      potato,
       yeet,
       yeet2,
     };

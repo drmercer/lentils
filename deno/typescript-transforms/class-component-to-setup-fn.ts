@@ -157,7 +157,6 @@ interface Declaration {
 }
 
 function classMembersToStatements(members: readonly TS.ClassElement[], props: Prop[]): string {
-  // TODO support setters?
   // TODO apply route hack automagically
   // TODO only include setup params that are actually used
   // TODO import dmInject automagically, and remove DmInject import
@@ -166,9 +165,21 @@ function classMembersToStatements(members: readonly TS.ClassElement[], props: Pr
   const alreadyUsedNames = new Set<string>();
   members.forEach(m => getBoundNames(m, alreadyUsedNames));
 
+  const setters = new Map<string, TS.SetAccessorDeclaration>();
+  members.forEach(m => {
+    if (ts.isSetAccessorDeclaration(m)) {
+      const name = getClassMemberName(m);
+      setters.set(name, m);
+    }
+  });
+
   const declarations: Declaration[] = members
     .map<Declaration|undefined>(m => {
-      const name: string = !m.name ? "" : ts.isIdentifier(m.name) ? m.name.escapedText.toString() : m.name.toString();
+      if (ts.isSetAccessorDeclaration(m)) {
+        // setters are combined with getters so we skip them here
+        return undefined;
+      }
+      const name: string = getClassMemberName(m);
       let renamedName: string | undefined = undefined;
       while (alreadyUsedNames.has(renamedName || name)) {
         // need to rename
@@ -192,7 +203,7 @@ function classMembersToStatements(members: readonly TS.ClassElement[], props: Pr
   const statements = declarations
     .map<string|undefined>(({member, name}) => {
       const comment = demargin(member.getSourceFile().text.substr(member.getFullStart(), member.getLeadingTriviaWidth()));
-      const statement = memberToStatement(member, name, renames, props);
+      const statement = memberToStatement(member, name, renames, props, setters);
       if (statement) {
         return comment + statement;
       } else {
@@ -212,7 +223,17 @@ function classMembersToStatements(members: readonly TS.ClassElement[], props: Pr
   ].join('\n\n');
 }
 
-function memberToStatement(m: TS.ClassElement, name: string, renames: Map<string, string>, props: Prop[]): string|undefined {
+function getClassMemberName(m: TS.ClassElement): string {
+  return !m.name ? "" : ts.isIdentifier(m.name) ? m.name.escapedText.toString() : m.name.toString();
+}
+
+function memberToStatement(
+  m: TS.ClassElement,
+  name: string,
+  renames: Map<string, string>,
+  props: Prop[],
+  setters: Map<string, TS.SetAccessorDeclaration>,
+): string|undefined {
   const newDeclarationName = renames.get(name) || name;
   if (ts.isPropertyDeclaration(m)) {
     const prop = props.find(p => p.node === m);
@@ -240,7 +261,13 @@ function memberToStatement(m: TS.ClassElement, name: string, renames: Map<string
     const type = m.type?.getText();
     const body = transformBody(m.body, renames);
     renames.set(name, newDeclarationName + '.value'); // TODO ew, don't mutate renames, do it a better way
-    return getterDeclaration(newDeclarationName, body, type);
+
+    // get setter info
+    const setter = setters.get(name);
+    const setterBody = setter ? transformBody(setter?.body, renames) : undefined;
+    const setterArg = setter?.parameters?.[0]?.getText();
+
+    return getterDeclaration(newDeclarationName, body, type, setterBody, setterArg);
   } else {
     console.warn("Unrecognized member kind: ", m.kind);
     return undefined;
@@ -262,12 +289,18 @@ ${async ? 'async ' : ''}function ${name}${typeParams}(${params}) {
 `.trim()
 }
 
-function getterDeclaration(name: string, body: string, type?: string): string {
-  return `
-const ${name}${type ? ': Ref<' + type + '>' : ''} = computed(() => {
+function getterDeclaration(name: string, body: string, type?: string, setterBody?: string, setterArg?: string): string {
+  const arg = !setterBody ? `() => {
   ${body}
-});
-`.trim();
+}` : `{
+  get: () => {
+    ${body}
+  },
+  set: (${setterArg || 'value'}) => {
+    ${setterBody}
+  },
+}`;
+  return `const ${name}${type ? ': Ref<' + type + '>' : ''} = computed(${arg});`;
 }
 
 function removeThisAndDoRenames(node: TS.Node, renames: Map<string, string>): string {
