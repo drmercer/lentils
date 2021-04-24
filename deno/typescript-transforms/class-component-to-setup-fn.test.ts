@@ -31,14 +31,17 @@ export default class InternalLinkFlow extends Vue {
   @Prop() private yeet2!: 'foo'|'bar';
 
   public get bagel(): string {
+    console.log('yeet');
     return 'everything';
   }
 
   public get potato(): string {
+    console.log('yeet');
     return 'everything';
   }
 
   public set potato(val: string) {
+    console.log('yeet');
     console.log(val);
   }
 
@@ -93,14 +96,17 @@ export default defineComponent({
     const yeet2: Ref<'foo'|'bar'> = computed(() => props.yeet2);
 
     const bagel: Ref<string> = computed(() => {
+      console.log('yeet');
       return 'everything';
     });
 
     const potato: Ref<string> = computed({
       get: () => {
+        console.log('yeet');
         return 'everything';
       },
       set: (val: string) => {
+        console.log('yeet');
         console.log(val);
       },
     });

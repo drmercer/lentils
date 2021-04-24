@@ -275,29 +275,31 @@ function memberToStatement(
 }
 
 function transformBody(body: TS.FunctionBody|undefined, renames: Map<string, string>): string {
-  return demargin(transformAll(body?.statements ?? [], (n) => removeThisAndDoRenames(n, renames)))
-    .trim()
-    .split('\n')
-    .join('\n  ');
+  return demargin(transformAll(body?.statements ?? [], (n) => removeThisAndDoRenames(n, renames)));
+}
+
+function indent(text: string, levels: number): string {
+  const padding = Array.from({ length: levels }, () => '  ').join('');
+  return text.replaceAll(/\n/g, '\n' + padding);
 }
 
 function functionDeclaration(name: string, params: string, typeParams: string, async: boolean, body: string) {
   return `
 ${async ? 'async ' : ''}function ${name}${typeParams}(${params}) {
-  ${body}
+  ${indent(body, 1)}
 }
 `.trim()
 }
 
 function getterDeclaration(name: string, body: string, type?: string, setterBody?: string, setterArg?: string): string {
   const arg = !setterBody ? `() => {
-  ${body}
+  ${indent(body, 1)}
 }` : `{
   get: () => {
-    ${body}
+    ${indent(body, 2)}
   },
   set: (${setterArg || 'value'}) => {
-    ${setterBody}
+    ${indent(setterBody, 2)}
   },
 }`;
   return `const ${name}${type ? ': Ref<' + type + '>' : ''} = computed(${arg});`;
