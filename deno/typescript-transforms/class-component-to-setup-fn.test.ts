@@ -18,6 +18,7 @@ Deno.test("it should work", () => {
 import { Component, Vue } from 'vue-property-decorator';
 import { Entry } from '../../../../common/types/entry';
 import SearchNotes from '../display/searchnotes.vue';
+import { DmInject } from '../../vue-injector';
 
 @Component({
   components: {
@@ -75,6 +76,7 @@ export default class InternalLinkFlow extends Vue {
 import { Ref, computed, defineComponent, ref } from '@vue/composition-api';
 import { Entry } from '../../../../common/types/entry';
 import SearchNotes from '../display/searchnotes.vue';
+import { dmInject } from '../../composables/injector';
 
 export default defineComponent({
   components: {

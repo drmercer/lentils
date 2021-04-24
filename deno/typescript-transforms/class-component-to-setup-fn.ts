@@ -48,7 +48,8 @@ export function transformTs(source: string): string {
     if (statement === component) {
       return transformedComponent;
     } else if (ts.isImportDeclaration(statement)) {
-      if (/vue-property-decorator|vue-class-component/.test(statement.getText())) {
+      const importText = statement.getText();
+      if (/vue-property-decorator|vue-class-component/.test(importText)) {
         const imports: string[] = [
           'defineComponent',
           /\bcomputed\(/.test(transformedComponent) ? 'computed' : undefined,
@@ -56,6 +57,8 @@ export function transformTs(source: string): string {
           /\bref\(/.test(transformedComponent) ? 'ref' : undefined,
         ].filter(isNonNull).sort();
         return `import { ${imports.join(', ')} } from '@vue/composition-api';`;
+      } else if (/\bDmInject\b/.test(importText)) {
+        return importText.replace('DmInject', 'dmInject').replace('vue-injector', 'composables/injector');
       }
     }
   }).replaceAll(/ +$/gm, '') // trim trailing spaces
@@ -173,7 +176,6 @@ interface Declaration {
 function classMembersToStatements(members: readonly TS.ClassElement[], props: Prop[]): string {
   // TODO apply route hack automagically
   // TODO only include setup params that are actually used
-  // TODO import dmInject automagically, and remove DmInject import
   // TODO convert lifecycle hooks / router hooks appropriately
   // TODO correctly demargin multiline ref values
   const alreadyUsedNames = new Set<string>();
