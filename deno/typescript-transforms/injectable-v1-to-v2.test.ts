@@ -1,25 +1,6 @@
-import { demargin } from '../denoified-common/string/string.ts';
 import { transform } from './injectable-v1-to-v2.ts';
 import { assertEquals } from "https://deno.land/std@0.93.0/testing/asserts.ts";
-
-/**
- * This exists to make assertEquals diff the sources nicely (by
- * defining a Deno.customInpsect method)
- */
-class Src {
-  constructor(public readonly text: string) {}
-
-  public [Deno.customInspect]() {
-    return this.text;
-  }
-}
-
-function src(parts: string): Src
-function src(parts: TemplateStringsArray, ...interpolations: unknown[]): Src
-function src(parts: TemplateStringsArray | string, ...interpolations: unknown[]): Src {
-  const text = demargin(parts, ...interpolations);
-  return new Src(text);
-}
+import { src } from '../testutils.ts';
 
 Deno.test("it should work", () => {
   const input = src`
