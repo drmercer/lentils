@@ -60,3 +60,9 @@ Deno.test('getBoundNames should work on class expressions', () => {
   const names = getBoundNames(sf);
   assertEquals(names, new Set(['b', 'C']));
 });
+
+Deno.test('getBoundNames should work on function parameters', () => {
+  const sf = parse('const b = (c: string) => 2;');
+  const names = getBoundNames(sf);
+  assertEquals(names, new Set(['b', 'c']));
+});

@@ -95,6 +95,8 @@ function _getBoundNames(node: TS.Node, names: Set<string>): void {
     if (node.name) {
       names.add(node.name.text);
     }
+  } else if (ts.isParameter(node)) {
+    _getBoundNamesFromBindingName(node.name, names);
   }
   ts.forEachChild(node, (child) => {
     _getBoundNames(child, names);
