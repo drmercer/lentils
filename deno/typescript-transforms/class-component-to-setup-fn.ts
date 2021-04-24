@@ -104,6 +104,7 @@ function classMembersToStatements(members: readonly TS.ClassElement[]): string {
           // Convert to Ref
           const initializer = m.initializer?.getText();
           const type = m.type?.getText();
+          renames.set(name, newDeclarationName + '.value'); // TODO ew, don't mutate renames, do it a better way
           return `${comment}const ${newDeclarationName}${type ? ': Ref<' + type + '>' : ''}${initializer ? ' = ref(' + initializer + ')' : ''};`;
         }
       } else if (ts.isMethodDeclaration(m)) {
