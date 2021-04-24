@@ -18,6 +18,29 @@ export function transformChildren(node: TS.Node, transformFn: (child: TS.Node) =
     }
   });
 
+  return insertReplacements(source, sourceStart, replacements);
+}
+
+export function transformAll(nodes: readonly TS.Node[], transformFn: (child: TS.Node) => string | undefined): string {
+  if (!nodes[0]) {
+    return '';
+  }
+  const source: string = nodesText(nodes);
+  const sourceStart: number = nodes[0].getFullStart();
+
+  const replacements: [child: TS.Node, replacementText: string][] = [];
+
+  nodes.forEach((child): void => {
+    const text = transformFn(child);
+    if (text !== undefined) {
+      replacements.push([child, text]);
+    }
+  });
+
+  return insertReplacements(source, sourceStart, replacements);
+}
+
+function insertReplacements(source: string, sourceStart: number, replacements: [child: TS.Node, replacementText: string][]): string {
   if (replacements.length === 0) {
     return source;
   }

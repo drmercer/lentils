@@ -2,7 +2,7 @@ import { demargin } from '../denoified-common/string/string.ts';
 
 import ts from './typescript.ts';
 import type { ts as TS } from './typescript.ts';
-import { nodesText, parse, transformChildren } from "./util.ts";
+import { mapPropertyAccesses, nodesText, parse, transformAll, transformChildren } from "./util.ts";
 
 if (import.meta.main) {
   console.log("Running...");
@@ -23,7 +23,6 @@ if (import.meta.main) {
  *
  * Known limitations:
  * - public properties are assumed to be readonly (because that should be true)
- * - any occurrence of "this." inside method bodies will be removed, even in strings or comments
  * - getters/setters are not supported
  */
 export function transform(source: string): string {
@@ -80,7 +79,7 @@ function injectableClassMembersToStatements(members: readonly TS.ClassElement[])
   const transformedMembers: string[] = members
     .map<string>(m => {
       if (ts.isConstructorDeclaration(m)) {
-        return demargin(removeThis(nodesText(Array.from(m.body?.statements ?? []))));
+        return demargin(transformAll(m.body?.statements ?? [], removeThis));
       }
       const name: string = !m.name ? "" : ts.isIdentifier(m.name) ? m.name.escapedText.toString() : m.name.toString();
       const isPublic: boolean = !m.modifiers?.some(mod => mod.kind === ts.SyntaxKind.PrivateKeyword);
@@ -98,7 +97,7 @@ function injectableClassMembersToStatements(members: readonly TS.ClassElement[])
         const async: boolean = m.modifiers?.some(mod => mod.kind === ts.SyntaxKind.AsyncKeyword) ?? false;
         const typeParams = m.typeParameters ? `<${nodesText(m.typeParameters)}>` : '';
         const params = m.parameters ? nodesText(m.parameters) : '';
-        const body = demargin(removeThis(nodesText(Array.from(m.body?.statements ?? []))))
+        const body = demargin(transformAll(m.body?.statements ?? [], removeThis))
           .trim()
           .split('\n')
           .join('\n  ');
@@ -146,8 +145,12 @@ return {
 };`.trim();
 }
 
-function removeThis(text: string): string {
-  return text.replaceAll(/\bthis\./g, ''); // TODO make more robust somehow?
+function removeThis(node: TS.Node): string {
+  return mapPropertyAccesses(node, (propertyName, target) => {
+    if (target === 'this') {
+      return propertyName;
+    }
+  });
 }
 
 function isTruthy<T>(x: T): x is Exclude<T, 0 | false | null | undefined | typeof NaN | ''> {
