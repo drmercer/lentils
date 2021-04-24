@@ -120,11 +120,14 @@ function injectableClassMembersToStatements(members: readonly TS.ClassElement[])
       const newDeclarationName = renamedName || name;
       const comment = demargin(m.getSourceFile().text.substr(m.getFullStart(), m.getLeadingTriviaWidth()));
       if (ts.isPropertyDeclaration(m)) {
-        // Known bug: non-readonly public properties are not properly exposed
-        const isReadonly = isPublic || (m.modifiers?.some(mod => mod.kind === ts.SyntaxKind.ReadonlyKeyword) ?? false);
+        const isReadonly = (m.modifiers?.some(mod => mod.kind === ts.SyntaxKind.ReadonlyKeyword) ?? false);
+        const assumeIsReadonly = isReadonly || isPublic;
+        if (!isReadonly && assumeIsReadonly) {
+          console.warn(`WARNING: property ${name} is public, assuming it is readonly`);
+        }
         const initializer = m.initializer?.getText();
         const type = m.type?.getText();
-        return `${comment}${isReadonly ? 'const' : 'let'} ${newDeclarationName}${type ? ': ' + type : ''}${initializer ? ' = ' + initializer : ''};`;
+        return `${comment}${assumeIsReadonly ? 'const' : 'let'} ${newDeclarationName}${type ? ': ' + type : ''}${initializer ? ' = ' + initializer : ''};`;
       } else if (ts.isMethodDeclaration(m)) {
         const async: boolean = m.modifiers?.some(mod => mod.kind === ts.SyntaxKind.AsyncKeyword) ?? false;
         const typeParams = m.typeParameters ? `<${nodesText(m.typeParameters)}>` : '';
