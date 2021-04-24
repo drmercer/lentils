@@ -27,6 +27,9 @@ import SearchNotes from '../display/searchnotes.vue';
 export default class InternalLinkFlow extends Vue {
   @DmInject private appRouter!: AppRouter;
 
+  @Prop() private yeet!: number;
+  @Prop() private yeet2!: 'foo'|'bar';
+
   public foo: string = 'yeet';
 
   private noteChosen(note: Entry) {
@@ -61,8 +64,20 @@ export default defineComponent({
   components: {
     SearchNotes,
   },
+  props: {
+    yeet: {
+      type: Number,
+    },
+    yeet2: {
+      type: String as () => 'foo'|'bar',
+    },
+  },
   setup(props, {emit}) {
     const appRouter = dmInject(AppRouter);
+
+    const yeet: Ref<number> = computed(() => props.yeet);
+
+    const yeet2: Ref<'foo'|'bar'> = computed(() => props.yeet2);
 
     const foo: Ref<string> = ref('yeet');
 
@@ -75,6 +90,8 @@ export default defineComponent({
       appRouter,
       foo,
       noteChosen,
+      yeet,
+      yeet2,
     };
   },
 });

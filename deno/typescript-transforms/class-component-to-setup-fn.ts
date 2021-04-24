@@ -50,12 +50,90 @@ export function transformTs(source: string): string {
 function transformComponent(component: TS.ClassDeclaration, decorator: TS.Decorator): string {
   const options: string = ts.isCallExpression(decorator.expression) ? decorator.expression.arguments[0].getText() : `{
 }`;
-  const newOptions = options.replace(/\s*}\s*$/, `\n  setup(props, {emit}) {
-    ${classMembersToStatements(component.members).replaceAll(/\n/g, '\n    ')}
+  const props = findProps(component.members);
+  const propsText = !props.length ? '' : `\n  props: {\n${
+    props
+      .map(p => {
+        const options = [
+          p.default && 'default: ' + p.default,
+          p.required && 'required: ' + p.required,
+          p.runtimeType && 'type: ' + p.runtimeType,
+        ].filter(isNonNull).map(s => '      ' + s + ',\n').join('');
+        return `    ${p.name}: {\n${options}    },`;
+      })
+      .join('\n')    }\n  },`
+  const newOptions = options.replace(/\s*}\s*$/, `${propsText}\n  setup(props, {emit}) {
+    ${classMembersToStatements(component.members, props).replaceAll(/\n/g, '\n    ')}
   },
 }`)
   // NOTE: assumes that the @Component class was the default export
   return `export default defineComponent(${newOptions});`;
+}
+
+interface Prop {
+  node: TS.PropertyDeclaration;
+  name: string;
+  type?: string;
+  runtimeType?: string;
+  required?: string;
+  default?: string;
+}
+
+function findProps(members: readonly TS.ClassElement[]): Prop[] {
+  return members
+    .map<Prop|undefined>(m => {
+      if (ts.isPropertyDeclaration(m)) {
+        const propDecorator = m.decorators?.find(d => d.getText().startsWith("@Prop"));
+        if (propDecorator && ts.isCallExpression(propDecorator.expression)) {
+          const type = m.type!.getText();
+          const name: string = !m.name ? "" : ts.isIdentifier(m.name) ? m.name.escapedText.toString() : m.name.toString();
+          const options = propDecorator.expression.arguments[0];
+          const parsedOptions = (options && ts.isObjectLiteralExpression(options)) ? parseOptions(options) : {required: undefined, default: undefined};
+          return {
+            node: m,
+            name,
+            type,
+            runtimeType: runtimeType(type),
+            ...parsedOptions,
+          };
+        }
+      }
+    })
+    .filter(isNonNull);
+}
+
+function parseOptions(options: TS.ObjectLiteralExpression) {
+  function getProperty(name: string): string|undefined {
+    return options.properties.filter(ts.isPropertyAssignment).find(p => p.name && ts.isIdentifier(p.name) && p.name.text === name)?.initializer.getText();
+  }
+  return {
+    required: getProperty("required"),
+    default: getProperty("default"),
+  };
+}
+
+function runtimeType(type: string): string|undefined {
+  if (type === 'string') {
+    return 'String';
+  } else if (type === 'number') {
+    return 'Number';
+  } else if (type === 'boolean') {
+    return 'Boolean';
+  } else if (type === 'symbol') {
+    return 'Symbol';
+  } else if (type === 'any' || type === 'unknown') {
+    return undefined;
+  } else if (/^\(.*\)\s*=>\s*.*/.test(type)) { // function
+    return `Function as () => (${type})`;
+  } else if (/^[A-Z]\w*$/.test(type)) { // custom class
+    return type.substr(0, 1).toUpperCase() + type.substr(1);
+  } else if (/\[\]$/.test(type)) { // array
+    return `Array as () => ${type}`;
+  } else if (/^['"]/.test(type)) { // string literal
+    return `String as () => ${type}`;
+  } else {  // fallback: compile-time checking only
+    return `undefined as unknown as () => ${type}`;
+  }
 }
 
 interface Declaration {
@@ -64,7 +142,8 @@ interface Declaration {
   renamedName?: string;
 }
 
-function classMembersToStatements(members: readonly TS.ClassElement[]): string {
+function classMembersToStatements(members: readonly TS.ClassElement[], props: Prop[]): string {
+  // TODO support getters/setters
   const alreadyUsedNames = new Set<string>();
   members.forEach(m => getBoundNames(m, alreadyUsedNames));
 
@@ -96,8 +175,11 @@ function classMembersToStatements(members: readonly TS.ClassElement[]): string {
       const newDeclarationName = renamedName || name;
       const comment = demargin(m.getSourceFile().text.substr(m.getFullStart(), m.getLeadingTriviaWidth()));
       if (ts.isPropertyDeclaration(m)) {
-        const isInjectable = m.decorators?.find(d => d.getText().startsWith("@DmInject"));
-        if (isInjectable) {
+        const prop = props.find(p => p.node === m);
+        if (prop) {
+          const {type, name} = prop;
+          return `${comment}const ${newDeclarationName}${type ? ': Ref<' + type + '>' : ''} = computed(() => props.${name});`;
+        } else if (m.decorators?.find(d => d.getText().startsWith("@DmInject"))) {
           const type = m.type!.getText();
           return `${comment}const ${newDeclarationName} = dmInject(${type});`;
         } else {
