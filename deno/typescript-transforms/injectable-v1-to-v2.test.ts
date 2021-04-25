@@ -20,6 +20,12 @@ export default class Foo {
     this.bagel = 'foo';
   }
 
+  private typeOnly?: {
+    foo: {
+      bar: any,
+    },
+  };
+
   /**
    * Candy bar
    */
@@ -69,6 +75,12 @@ export const Foo = injectable('Foo', (inject) => {
   const potato = inject(Potato);
 
   bagel = 'foo';
+
+  let typeOnly: {
+    foo: {
+      bar: any,
+    },
+  };
 
   /**
    * Candy bar
