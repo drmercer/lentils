@@ -9,7 +9,7 @@ Deno.test("it should work", () => {
     <SearchNotes
       :density="'cozy'"
       :showHome="false"
-      :yeet="appRouter"
+      :yeet="appRouter + yeet"
       @note-clicked="noteChosen($event)"
     />
   </div>
@@ -85,7 +85,7 @@ export default class InternalLinkFlow extends Vue {
     <SearchNotes
       :density="'cozy'"
       :showHome="false"
-      :yeet="appRouter"
+      :yeet="appRouter + yeet"
       @note-clicked="noteChosen($event)"
     />
   </div>
@@ -159,7 +159,6 @@ export default defineComponent({
     return {
       appRouter,
       noteChosen,
-      yeet,
     };
   },
 });

@@ -241,6 +241,10 @@ function classMembersToStatements(members: readonly TS.ClassElement[], props: Pr
     .filter(name => {
       return wordsInTemplate.has(name);
     })
+    .filter(name => {
+      // Don't re-export props. Vue gives a warning if you do that.
+      return !props.find(p => p.name === name);
+    })
 
   return [
     ...statements,
