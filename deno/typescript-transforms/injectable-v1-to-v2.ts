@@ -149,13 +149,14 @@ function memberToStatement(m: TS.ClassElement, d: Declaration, renames: Map<stri
   } else if (ts.isMethodDeclaration(m)) {
     const async: boolean = m.modifiers?.some(mod => mod.kind === ts.SyntaxKind.AsyncKeyword) ?? false;
     const typeParams = m.typeParameters ? `<${nodesText(m.typeParameters)}>` : '';
+    const returnType = m.type ? ': ' + m.type.getText() : '';
     const params = m.parameters ? nodesText(m.parameters) : '';
     const body = demargin(transformAll(m.body?.statements ?? [], (n) => removeThisAndDoRenames(n, renames)))
       .trim()
       .split('\n')
       .join('\n  ');
     return `
-${async ? 'async ' : ''}function ${newDeclarationName}${typeParams}(${params}) {
+${async ? 'async ' : ''}function ${newDeclarationName}${typeParams}(${params})${returnType} {
   ${body}
 }`.trim();
   } else {
