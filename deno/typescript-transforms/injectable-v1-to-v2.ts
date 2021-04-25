@@ -143,7 +143,7 @@ function memberToStatement(m: TS.ClassElement, d: Declaration, renames: Map<stri
     if (!isReadonly && assumeIsReadonly) {
       console.warn(`WARNING: property ${name} is public, assuming it is readonly`);
     }
-    const initializer = m.initializer?.getText();
+    const initializer = m.initializer ? removeThisAndDoRenames(m.initializer, renames) : undefined;
     const type = m.type?.getText();
     return `${assumeIsReadonly ? 'const' : 'let'} ${newDeclarationName}${type ? ': ' + type : ''}${initializer ? ' = ' + initializer : ''};`;
   } else if (ts.isMethodDeclaration(m)) {
