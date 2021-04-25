@@ -33,6 +33,8 @@ export default class InternalLinkFlow extends Vue {
   @Prop() private yeet!: number;
   @Prop() private yeet2!: 'foo'|'bar';
 
+  private readonly test = 1234; // some test comment
+
   public get bagel(): string {
     console.log('yeet');
     return 'everything';
@@ -61,6 +63,9 @@ export default class InternalLinkFlow extends Vue {
     console.log("bye");
   }
 
+  /**
+   * Test jsdoc comment
+   */
   private noteChosen(note: Entry) {
     this.$emit('note-chosen', note.path);
     console.log(this.appRouter, this.foo);
@@ -108,8 +113,9 @@ export default defineComponent({
     const element: Ref<HTMLElement> = ref(null as HTMLElement);
 
     const yeet: Ref<number> = computed(() => props.yeet);
-
     const yeet2: Ref<'foo'|'bar'> = computed(() => props.yeet2);
+
+    const test = ref(1234); // some test comment
 
     const bagel: Ref<string> = computed(() => {
       console.log('yeet');
@@ -140,6 +146,9 @@ export default defineComponent({
       console.log("bye");
     });
 
+    /**
+     * Test jsdoc comment
+     */
     function noteChosen(note: Entry) {
       emit('note-chosen', note.path);
       console.log(appRouter, foo.value);
@@ -153,6 +162,7 @@ export default defineComponent({
       multilineFoo,
       noteChosen,
       potato,
+      test,
       yeet,
       yeet2,
     };

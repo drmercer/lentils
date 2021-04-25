@@ -2,7 +2,6 @@ import { isNonNull } from '../denoified-common/types/checks.ts';
 import ts from './typescript.ts';
 import type { ts as TS } from './typescript.ts';
 import { getBoundNames, mapPropertyAccesses, nodesText, parse, returnedObject, transformAll, transformChildren } from "./util.ts";
-import { demargin } from "../denoified-common/string/string.ts";
 
 if (import.meta.main) {
   console.log("Running...");
@@ -71,7 +70,7 @@ function transformComponent(component: TS.ClassDeclaration, decorator: TS.Decora
   const props = findProps(component.members);
   const propsText = buildPropText(props);
   const newOptions = options.replace(/\s*}\s*$/, `${propsText}\n  setup(props, {emit}) {
-    ${classMembersToStatements(component.members, props).replaceAll(/\n/g, '\n    ')}
+    ${classMembersToStatements(component.members, props).trim().replaceAll(/\n/g, '\n    ')}
   },
 }`)
   // NOTE: assumes that the @Component class was the default export
@@ -217,7 +216,8 @@ function classMembersToStatements(members: readonly TS.ClassElement[], props: Pr
 
   const statements = declarations
     .map<string|undefined>(({member, name}) => {
-      const comment = demargin(member.getSourceFile().text.substr(member.getFullStart(), member.getLeadingTriviaWidth()));
+      const leadingTrivia = member.getSourceFile().text.substr(member.getFullStart(), member.getLeadingTriviaWidth());
+      const comment = demarginExceptFirstLine(leadingTrivia);
       const statement = memberToStatement(member, name, renames, props, setters);
       if (statement) {
         return comment + statement;
@@ -238,8 +238,9 @@ function classMembersToStatements(members: readonly TS.ClassElement[], props: Pr
 
   return [
     ...statements,
+    '\n\n',
     returnedObject(exports),
-  ].join('\n\n');
+  ].join('');
 }
 
 function getClassMemberName(m: TS.ClassElement): string {
@@ -298,19 +299,30 @@ function memberToStatement(
 }
 
 function transformBody(body: TS.FunctionBody|undefined, renames: Map<string, string>): string {
-  return demargin(transformAll(body?.statements ?? [], (n) => removeThisAndDoRenames(n, renames)));
+  return demargin(transformAll(body?.statements ?? [], (n) => removeThisAndDoRenames(n, renames)))
+    .trim();
 }
 
 function demarginExceptFirstLine(text: string): string {
   const [firstLine, ...otherLines] = text.split('\n');
-  const marginSize = otherLines
+  if (!otherLines.length) {
+    return text;
+  }
+  return firstLine + '\n' + demargin(otherLines.join('\n'));
+}
+
+function demargin(text: string): string {
+  const marginSize = text
+    .split('\n')
+    .filter(line => !!line)
     .map(line => line.match(/^[ \t]*/)![0].length)
     .reduce((a, b) => Math.min(a,b), Number.POSITIVE_INFINITY);
   if (!Number.isFinite(marginSize)) {
     return text;
   }
-  const marginRegex = new RegExp(`(^|\n)[ \t]{0,${marginSize}}`, 'g');
-  return firstLine + '\n' + otherLines.join('\n').replace(marginRegex, '$1');
+  const marginRegex = new RegExp(`^[ \t]{0,${marginSize}}`, 'mg');
+  return text
+    .replace(marginRegex, '');
 }
 
 function indent(text: string, levels: number): string {
