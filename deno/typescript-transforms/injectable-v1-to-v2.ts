@@ -1,9 +1,8 @@
-import { demargin } from '../denoified-common/string/string.ts';
 import { isNonNull } from '../denoified-common/types/checks.ts';
 
 import ts from './typescript.ts';
 import type { ts as TS } from './typescript.ts';
-import { getBoundNames, mapPropertyAccesses, nodesText, parse, returnedObject, transformAll, transformChildren } from "./util.ts";
+import { demargin, demarginExceptFirstLine, getBoundNames, indent, mapPropertyAccesses, nodesText, parse, returnedObject, transformAll, transformChildren } from "./util.ts";
 
 if (import.meta.main) {
   console.log("Running...");
@@ -69,7 +68,7 @@ function injectableClassToInjectableFunction(statement: TS.ClassDeclaration): st
 export type ${className} = InjectedValue<typeof ${className}>;
 
 export const ${className} = injectable('${className}', (inject) => {
-  ${injectableClassMembersToStatements(statement.members).replaceAll(/\n/g, '\n  ')}
+  ${indent(injectableClassMembersToStatements(statement.members), 1)}
 });
 `.trim();
 }
@@ -116,34 +115,9 @@ function injectableClassMembersToStatements(members: readonly TS.ClassElement[])
       if (ts.isConstructorDeclaration(m)) {
         return demargin(transformAll(m.body?.statements ?? [], (n) => removeThisAndDoRenames(n, renames)));
       }
-      const {name, renamedName, exported: isPublic} = declarations.find(d => d.member === m)!;
-      const newDeclarationName = renamedName || name;
-      const comment = demargin(m.getSourceFile().text.substr(m.getFullStart(), m.getLeadingTriviaWidth()));
-      if (ts.isPropertyDeclaration(m)) {
-        const isReadonly = (m.modifiers?.some(mod => mod.kind === ts.SyntaxKind.ReadonlyKeyword) ?? false);
-        const assumeIsReadonly = isReadonly || isPublic;
-        if (!isReadonly && assumeIsReadonly) {
-          console.warn(`WARNING: property ${name} is public, assuming it is readonly`);
-        }
-        const initializer = m.initializer?.getText();
-        const type = m.type?.getText();
-        return `${comment}${assumeIsReadonly ? 'const' : 'let'} ${newDeclarationName}${type ? ': ' + type : ''}${initializer ? ' = ' + initializer : ''};`;
-      } else if (ts.isMethodDeclaration(m)) {
-        const async: boolean = m.modifiers?.some(mod => mod.kind === ts.SyntaxKind.AsyncKeyword) ?? false;
-        const typeParams = m.typeParameters ? `<${nodesText(m.typeParameters)}>` : '';
-        const params = m.parameters ? nodesText(m.parameters) : '';
-        const body = demargin(transformAll(m.body?.statements ?? [], (n) => removeThisAndDoRenames(n, renames)))
-          .trim()
-          .split('\n')
-          .join('\n  ');
-        return `
-${comment}${async ? 'async ' : ''}function ${newDeclarationName}${typeParams}(${params}) {
-  ${body}
-}`.trim();
-      } else {
-        console.warn("Unrecognized member kind: ", m.kind);
-        return '';
-      }
+      const d = declarations.find(d => d.member === m)!;
+      const comment = demarginExceptFirstLine(m.getSourceFile().text.substr(m.getFullStart(), m.getLeadingTriviaWidth()));
+      return comment + memberToStatement(m, d, renames);
     })
     .filter(isTruthy);
   const allExported = exported.concat(
@@ -153,9 +127,41 @@ ${comment}${async ? 'async ' : ''}function ${newDeclarationName}${typeParams}(${
   );
   return [
     injections.join('\n'),
+    '\n',
     ...transformedMembers,
+    '\n\n',
     returnedObject(allExported),
-  ].join('\n\n').trim();
+  ].join('').trim();
+}
+
+function memberToStatement(m: TS.ClassElement, d: Declaration, renames: Map<string, string>) {
+  const { name, exported: isPublic } = d;
+  const newDeclarationName = renames.get(name) || name;
+  if (ts.isPropertyDeclaration(m)) {
+    const isReadonly = (m.modifiers?.some(mod => mod.kind === ts.SyntaxKind.ReadonlyKeyword) ?? false);
+    const assumeIsReadonly = isReadonly || isPublic;
+    if (!isReadonly && assumeIsReadonly) {
+      console.warn(`WARNING: property ${name} is public, assuming it is readonly`);
+    }
+    const initializer = m.initializer?.getText();
+    const type = m.type?.getText();
+    return `${assumeIsReadonly ? 'const' : 'let'} ${newDeclarationName}${type ? ': ' + type : ''}${initializer ? ' = ' + initializer : ''};`;
+  } else if (ts.isMethodDeclaration(m)) {
+    const async: boolean = m.modifiers?.some(mod => mod.kind === ts.SyntaxKind.AsyncKeyword) ?? false;
+    const typeParams = m.typeParameters ? `<${nodesText(m.typeParameters)}>` : '';
+    const params = m.parameters ? nodesText(m.parameters) : '';
+    const body = demargin(transformAll(m.body?.statements ?? [], (n) => removeThisAndDoRenames(n, renames)))
+      .trim()
+      .split('\n')
+      .join('\n  ');
+    return `
+${async ? 'async ' : ''}function ${newDeclarationName}${typeParams}(${params}) {
+  ${body}
+}`.trim();
+  } else {
+    console.warn("Unrecognized member kind: ", m.kind);
+    return '';
+  }
 }
 
 function ctorParamsToInjections(parameters: TS.NodeArray<TS.ParameterDeclaration>) {

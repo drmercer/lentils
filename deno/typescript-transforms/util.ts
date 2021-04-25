@@ -161,3 +161,34 @@ function _getBoundNamesFromBindingName(node: TS.BindingName, names: Set<string>)
     });
   }
 }
+
+export function demarginExceptFirstLine(text: string): string {
+  const [firstLine, ...otherLines] = text.split('\n');
+  if (!otherLines.length) {
+    return text;
+  }
+  return firstLine + '\n' + demargin(otherLines.join('\n'));
+}
+
+export function demargin(text: string): string {
+  const marginSize = text
+    .split('\n')
+    .filter(line => !!line)
+    .map(line => line.match(/^[ \t]*/)![0].length)
+    .reduce((a, b) => Math.min(a, b), Number.POSITIVE_INFINITY);
+  if (!Number.isFinite(marginSize)) {
+    return text;
+  }
+  const marginRegex = new RegExp(`^[ \t]{0,${marginSize}}`, 'mg');
+  return text
+    .replace(marginRegex, '');
+}
+
+export function indent(text: string, levels: number): string {
+  const padding = Array.from({ length: levels }, () => '  ').join('');
+  return text.replaceAll(/\n/g, '\n' + padding);
+}
+
+export function capitalize(name: string): string {
+  return name.substr(0, 1).toUpperCase() + name.substr(1);
+}

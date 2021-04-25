@@ -22,7 +22,7 @@ export default class Foo {
   /**
    * Candy bar
    */
-  private bar = 'hello';
+  private bar = 'hello'; // some comment
 
   /**
    * Some yeets
@@ -59,7 +59,7 @@ export const Foo = injectable('Foo', (inject) => {
   /**
    * Candy bar
    */
-  let bar = 'hello';
+  let bar = 'hello'; // some comment
 
   /**
    * Some yeets

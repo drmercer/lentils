@@ -1,7 +1,7 @@
 import { isNonNull } from '../denoified-common/types/checks.ts';
 import ts from './typescript.ts';
 import type { ts as TS } from './typescript.ts';
-import { getBoundNames, mapPropertyAccesses, nodesText, parse, returnedObject, transformAll, transformChildren } from "./util.ts";
+import { capitalize, demargin, demarginExceptFirstLine, getBoundNames, indent, mapPropertyAccesses, nodesText, parse, returnedObject, transformAll, transformChildren } from "./util.ts";
 
 /** Vue 2 lifecycle hooks */
 const lifecycleHooks: readonly string[] = [
@@ -360,37 +360,6 @@ function buildWatchStatements(decorator: TS.Decorator, functionName: string): st
 function transformBody(body: TS.FunctionBody|undefined, renames: Map<string, string>): string {
   return demargin(transformAll(body?.statements ?? [], (n) => removeThisAndDoRenames(n, renames)))
     .trim();
-}
-
-function demarginExceptFirstLine(text: string): string {
-  const [firstLine, ...otherLines] = text.split('\n');
-  if (!otherLines.length) {
-    return text;
-  }
-  return firstLine + '\n' + demargin(otherLines.join('\n'));
-}
-
-function demargin(text: string): string {
-  const marginSize = text
-    .split('\n')
-    .filter(line => !!line)
-    .map(line => line.match(/^[ \t]*/)![0].length)
-    .reduce((a, b) => Math.min(a,b), Number.POSITIVE_INFINITY);
-  if (!Number.isFinite(marginSize)) {
-    return text;
-  }
-  const marginRegex = new RegExp(`^[ \t]{0,${marginSize}}`, 'mg');
-  return text
-    .replace(marginRegex, '');
-}
-
-function indent(text: string, levels: number): string {
-  const padding = Array.from({ length: levels }, () => '  ').join('');
-  return text.replaceAll(/\n/g, '\n' + padding);
-}
-
-function capitalize(name: string): string {
-  return name.substr(0, 1).toUpperCase() + name.substr(1);
 }
 
 function isLifecycleHook(name: string): boolean {
