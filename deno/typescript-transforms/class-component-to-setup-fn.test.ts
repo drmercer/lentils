@@ -9,6 +9,7 @@ Deno.test("it should work", () => {
     <SearchNotes
       :density="'cozy'"
       :showHome="false"
+      :yeet="appRouter"
       @note-clicked="noteChosen($event)"
     />
   </div>
@@ -84,6 +85,7 @@ export default class InternalLinkFlow extends Vue {
     <SearchNotes
       :density="'cozy'"
       :showHome="false"
+      :yeet="appRouter"
       @note-clicked="noteChosen($event)"
     />
   </div>
@@ -156,15 +158,8 @@ export default defineComponent({
 
     return {
       appRouter,
-      bagel,
-      element,
-      foo,
-      multilineFoo,
       noteChosen,
-      potato,
-      test,
       yeet,
-      yeet2,
     };
   },
 });
@@ -181,6 +176,7 @@ Deno.test("it should only include the necessary imports", () => {
   const input = src`
 <template>
   <div class="yeet">
+    {{ hello }}
   </div>
 </template>
 
@@ -203,6 +199,7 @@ export default class Yeet extends Vue {
   const expected = src`
 <template>
   <div class="yeet">
+    {{ hello }}
   </div>
 </template>
 

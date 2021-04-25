@@ -18,12 +18,16 @@ if (import.meta.main) {
 }
 
 export function transform(source: string): string {
+  const template = source.match(/^<template.*?>\n(.*)^<\/template>$/ms)![1];
+  const wordsInTemplate = new Set<string>(
+    [...template.matchAll(/\b[$\w]+\b/g)].map(m => m[0])
+  );
   return source.replace(/^<script.*?>\n(.*)^<\/script>$/ms, (tsSource) => {
-    return transformTs(tsSource);
+    return transformTs(tsSource, wordsInTemplate);
   });
 }
 
-export function transformTs(source: string): string {
+export function transformTs(source: string, wordsInTemplate: Set<string>): string {
   const sourceFile = parse(source);
 
   const component = sourceFile.statements.find(statement => {
@@ -41,7 +45,7 @@ export function transformTs(source: string): string {
   const componentDecorator = component.decorators!.find(node => {
     return node.getText().includes("@Component");
   })!;
-  const transformedComponent: string = transformComponent(component, componentDecorator);
+  const transformedComponent: string = transformComponent(component, componentDecorator, wordsInTemplate);
 
   return transformChildren(sourceFile, (statement: TS.Node) => {
     if (statement === component) {
@@ -64,13 +68,13 @@ export function transformTs(source: string): string {
   }).replaceAll(/ +$/gm, '') // trim trailing spaces
 }
 
-function transformComponent(component: TS.ClassDeclaration, decorator: TS.Decorator): string {
+function transformComponent(component: TS.ClassDeclaration, decorator: TS.Decorator, wordsInTemplate: Set<string>): string {
   const options: string = ts.isCallExpression(decorator.expression) ? decorator.expression.arguments[0].getText() : `{
 }`;
   const props = findProps(component.members);
   const propsText = buildPropText(props);
   const newOptions = options.replace(/\s*}\s*$/, `${propsText}\n  setup(props, {emit}) {
-    ${classMembersToStatements(component.members, props).trim().replaceAll(/\n/g, '\n    ')}
+    ${classMembersToStatements(component.members, props, wordsInTemplate).trim().replaceAll(/\n/g, '\n    ')}
   },
 }`)
   // NOTE: assumes that the @Component class was the default export
@@ -173,7 +177,7 @@ interface Declaration {
   renamedName?: string;
 }
 
-function classMembersToStatements(members: readonly TS.ClassElement[], props: Prop[]): string {
+function classMembersToStatements(members: readonly TS.ClassElement[], props: Prop[], wordsInTemplate: Set<string>): string {
   // TODO only include setup params that are actually used
   // TODO convert router hooks appropriately?
   const alreadyUsedNames = new Set<string>();
@@ -227,14 +231,16 @@ function classMembersToStatements(members: readonly TS.ClassElement[], props: Pr
     })
     .filter(isNonNull)
 
-  // Export all declarations, because we can't tell what's used in the template and what's not (at least not without parsing the template)
   const exports = declarations
     .filter(d => {
       return !(ts.isMethodDeclaration(d.member) && isLifecycleHook(getClassMemberName(d.member)));
     })
     .map(d => {
       return d.name + (d.renamedName ? ': ' + d.renamedName : '');
-    });
+    })
+    .filter(name => {
+      return wordsInTemplate.has(name);
+    })
 
   return [
     ...statements,
