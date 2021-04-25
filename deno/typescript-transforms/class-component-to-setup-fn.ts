@@ -380,6 +380,7 @@ function isLifecycleHook(name: string): boolean {
     'mounted',
     'beforeUpdate',
     'updated',
+    'activated',
     'beforeDestroy',
     'destroyed',
   ].includes(name);
