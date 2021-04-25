@@ -287,6 +287,9 @@ function memberToStatement(
     if (isLifecycleHook(name)) {
       return lifecycleHookDeclaration(name, async, body);
     } else {
+      if (isRouterHook(name)) {
+        console.warn('[ ] Migrate ' + name + ' hook manually');
+      }
       const typeParams = m.typeParameters ? `<${nodesText(m.typeParameters)}>` : '';
       const params = m.parameters ? nodesText(m.parameters) : '';
       return functionDeclaration(newDeclarationName, params, typeParams, async, body);
@@ -351,6 +354,14 @@ function isLifecycleHook(name: string): boolean {
     'updated',
     'beforeDestroy',
     'destroyed',
+  ].includes(name);
+}
+
+function isRouterHook(name: string): boolean {
+  return [
+    'beforeRouteEnter',
+    'beforeRouteLeave',
+    'beforeRouteUpdate',
   ].includes(name);
 }
 
