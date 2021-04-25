@@ -73,6 +73,7 @@ function transformComponent(component: TS.ClassDeclaration, decorator: TS.Decora
 }`;
   const props = findProps(component.members);
   const propsText = buildPropText(props);
+  console.warn('[ ] Check if any parameters to setup() are unused');
   const newOptions = options.replace(/\s*}\s*$/, `${propsText}\n  setup(props, {emit}) {
     ${classMembersToStatements(component.members, props, wordsInTemplate).trim().replaceAll(/\n/g, '\n    ')}
   },
@@ -399,6 +400,9 @@ function getterDeclaration(name: string, body: string, type?: string, setterBody
 function removeThisAndDoRenames(node: TS.Node, renames: Map<string, string>): string {
   return mapPropertyAccesses(node, (propertyName, target) => {
     if (target === 'this') {
+      if (propertyName.startsWith('$') && !renames.has(propertyName)) { // e.g. this.$on
+        console.warn('[ ] Check if ' + propertyName + ' usages need manual migration');
+      }
       return renames.get(propertyName) ?? propertyName;
     }
   });
