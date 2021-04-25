@@ -59,6 +59,7 @@ export function transformTs(source: string, wordsInTemplate: Set<string>): strin
           /\bRef</.test(transformedComponent) ? 'Ref' : undefined,
           /\bref\(/.test(transformedComponent) ? 'ref' : undefined,
           /\bonMounted\(/.test(transformedComponent) ? 'onMounted' : undefined,
+          /\bwatch\(/.test(transformedComponent) ? 'watch' : undefined,
         ].filter(isNonNull).sort();
         return `import { ${imports.join(', ')} } from '@vue/composition-api';`;
       } else if (/\bDmInject\b/.test(importText)) {
@@ -138,14 +139,18 @@ ${p.name}: {
   },`
 }
 
-function parseOptions(options: TS.ObjectLiteralExpression) {
-  function getProperty(name: string): string|undefined {
-    return options.properties.filter(ts.isPropertyAssignment).find(p => p.name && ts.isIdentifier(p.name) && p.name.text === name)?.initializer.getText();
-  }
-  return {
-    required: getProperty("required"),
-    default: getProperty("default"),
-  };
+function parseOptions(options: TS.ObjectLiteralExpression): Record<string, string> {
+  return options.properties
+    .filter(ts.isPropertyAssignment)
+    .reduce((acc, p) => {
+      if (p.name && ts.isIdentifier(p.name)) {
+        return {
+          ...acc,
+          [p.name.text]: p.initializer.getText()
+        };
+      }
+      return acc;
+    }, {});
 }
 
 function runtimeType(type: string): string|undefined {
@@ -293,7 +298,12 @@ function memberToStatement(
       }
       const typeParams = m.typeParameters ? `<${nodesText(m.typeParameters)}>` : '';
       const params = m.parameters ? nodesText(m.parameters) : '';
-      return functionDeclaration(newDeclarationName, params, typeParams, async, body);
+      const watchDecorator = m.decorators?.find(node => {
+        return node.getText().includes("@Watch");
+      });
+      const extraStatementsForWatching = watchDecorator ? buildWatchStatements(watchDecorator, newDeclarationName) : undefined;
+      return functionDeclaration(newDeclarationName, params, typeParams, async, body) +
+        (extraStatementsForWatching ? '\n' + extraStatementsForWatching : '');
     }
 
   } else if (ts.isGetAccessorDeclaration(m)) {
@@ -311,6 +321,23 @@ function memberToStatement(
     console.warn("Unrecognized member kind: ", m.kind);
     return undefined;
   }
+}
+
+function buildWatchStatements(decorator: TS.Decorator, functionName: string): string|undefined {
+  if (decorator && ts.isCallExpression(decorator.expression)) {
+    const whatToWatch = decorator.expression.arguments[0];
+    const whatToWatchStr = ts.isStringLiteral(whatToWatch) ? whatToWatch.text : whatToWatch.getText();
+    let statements = `watch(${whatToWatchStr}, ${functionName});`;
+    console.warn(`[ ] Check that the '${statements}' statements were built correctly`);
+
+    const options = decorator.expression.arguments[1];
+    const parsedOptions = (options && ts.isObjectLiteralExpression(options)) ? parseOptions(options) : {};
+    if (parsedOptions.immediate === 'true') {
+      statements += `\nonMounted(${functionName});`;
+    }
+    return statements;
+  }
+  return undefined;
 }
 
 function transformBody(body: TS.FunctionBody|undefined, renames: Map<string, string>): string {

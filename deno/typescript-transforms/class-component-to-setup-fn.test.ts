@@ -41,6 +41,11 @@ export default class InternalLinkFlow extends Vue {
     return 'everything';
   }
 
+  @Watch('yeet', {immediate: true})
+  public async onYeetChanged() {
+    console.debug('yeet changed');
+  }
+
   public get potato(): string {
     console.log('yeet');
     return 'everything';
@@ -92,7 +97,7 @@ export default class InternalLinkFlow extends Vue {
 </template>
 
 <script lang="ts">
-import { Ref, computed, defineComponent, onMounted, ref } from '@vue/composition-api';
+import { Ref, computed, defineComponent, onMounted, ref, watch } from '@vue/composition-api';
 import { Entry } from '../../../../common/types/entry';
 import SearchNotes from '../display/searchnotes.vue';
 import { dmInject } from '../../composables/injector';
@@ -123,6 +128,12 @@ export default defineComponent({
       console.log('yeet', yeet.value);
       return 'everything';
     });
+
+    async function onYeetChanged() {
+      console.debug('yeet changed');
+    }
+    watch(yeet, onYeetChanged);
+    onMounted(onYeetChanged);
 
     const potato: Ref<string> = computed({
       get: () => {
