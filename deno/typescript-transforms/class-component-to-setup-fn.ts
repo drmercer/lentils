@@ -176,10 +176,8 @@ interface Declaration {
 
 function classMembersToStatements(members: readonly TS.ClassElement[], props: Prop[]): string {
   // TODO handle template refs (@Ref)
-  // TODO apply route hack automagically
   // TODO only include setup params that are actually used
   // TODO convert router hooks appropriately?
-  // TODO correctly demargin multiline ref values
   const alreadyUsedNames = new Set<string>();
   members.forEach(m => getBoundNames(m, alreadyUsedNames));
 
@@ -270,7 +268,7 @@ function memberToStatement(
       const initializer = m.initializer?.getText();
       const type = m.type?.getText();
       renames.set(name, newDeclarationName + '.value'); // TODO ew, don't mutate renames, do it a better way
-      return `const ${newDeclarationName}${type ? ': Ref<' + type + '>' : ''}${initializer ? ' = ref(' + initializer + ')' : ''};`;
+      return `const ${newDeclarationName}${type ? ': Ref<' + type + '>' : ''}${initializer ? ' = ref(' + demarginExceptFirstLine(initializer) + ')' : ''};`;
     }
   } else if (ts.isMethodDeclaration(m)) {
     const body = transformBody(m.body, renames);
@@ -302,6 +300,18 @@ function memberToStatement(
 
 function transformBody(body: TS.FunctionBody|undefined, renames: Map<string, string>): string {
   return demargin(transformAll(body?.statements ?? [], (n) => removeThisAndDoRenames(n, renames)));
+}
+
+function demarginExceptFirstLine(text: string): string {
+  const [firstLine, ...otherLines] = text.split('\n');
+  const marginSize = otherLines
+    .map(line => line.match(/^[ \t]*/)![0].length)
+    .reduce((a, b) => Math.min(a,b), Number.POSITIVE_INFINITY);
+  if (!Number.isFinite(marginSize)) {
+    return text;
+  }
+  const marginRegex = new RegExp(`(^|\n)[ \t]{0,${marginSize}}`, 'g');
+  return firstLine + '\n' + otherLines.join('\n').replace(marginRegex, '$1');
 }
 
 function indent(text: string, levels: number): string {

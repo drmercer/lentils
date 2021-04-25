@@ -49,6 +49,10 @@ export default class InternalLinkFlow extends Vue {
   // Foo
   public foo: string = 'yeet';
 
+  public multilineFoo = {
+    a: true,
+  };
+
   public async mounted() {
     console.log("hi");
     await foo();
@@ -122,6 +126,10 @@ export default defineComponent({
     // Foo
     const foo: Ref<string> = ref('yeet');
 
+    const multilineFoo = ref({
+      a: true,
+    });
+
     onMounted(async () => {
       console.log("hi");
       await foo();
@@ -137,6 +145,7 @@ export default defineComponent({
       appRouter,
       bagel,
       foo,
+      multilineFoo,
       noteChosen,
       potato,
       yeet,
