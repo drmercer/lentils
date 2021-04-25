@@ -259,6 +259,7 @@ function memberToStatement(
     const prop = props.find(p => p.node === m);
     if (prop) {
       const { type, name } = prop;
+      renames.set(name, newDeclarationName + '.value'); // TODO ew, don't mutate renames, do it a better way
       return `const ${newDeclarationName}${type ? ': Ref<' + type + '>' : ''} = computed(() => props.${name});`;
     } else if (m.decorators?.find(d => d.getText().startsWith("@DmInject"))) {
       const type = m.type!.getText();

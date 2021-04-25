@@ -36,7 +36,7 @@ export default class InternalLinkFlow extends Vue {
   private readonly test = 1234; // some test comment
 
   public get bagel(): string {
-    console.log('yeet');
+    console.log('yeet', this.yeet);
     return 'everything';
   }
 
@@ -118,7 +118,7 @@ export default defineComponent({
     const test = ref(1234); // some test comment
 
     const bagel: Ref<string> = computed(() => {
-      console.log('yeet');
+      console.log('yeet', yeet.value);
       return 'everything';
     });
 
