@@ -28,6 +28,8 @@ import { DmInject } from '../../vue-injector';
 export default class InternalLinkFlow extends Vue {
   @DmInject private appRouter!: AppRouter;
 
+  @Ref() private element!: HTMLElement;
+
   @Prop() private yeet!: number;
   @Prop() private yeet2!: 'foo'|'bar';
 
@@ -103,6 +105,8 @@ export default defineComponent({
   setup(props, {emit}) {
     const appRouter = dmInject(AppRouter);
 
+    const element: Ref<HTMLElement> = ref(null as HTMLElement);
+
     const yeet: Ref<number> = computed(() => props.yeet);
 
     const yeet2: Ref<'foo'|'bar'> = computed(() => props.yeet2);
@@ -144,6 +148,7 @@ export default defineComponent({
     return {
       appRouter,
       bagel,
+      element,
       foo,
       multilineFoo,
       noteChosen,

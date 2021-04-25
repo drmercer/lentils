@@ -175,7 +175,6 @@ interface Declaration {
 }
 
 function classMembersToStatements(members: readonly TS.ClassElement[], props: Prop[]): string {
-  // TODO handle template refs (@Ref)
   // TODO only include setup params that are actually used
   // TODO convert router hooks appropriately?
   const alreadyUsedNames = new Set<string>();
@@ -268,7 +267,7 @@ function memberToStatement(
       const initializer = m.initializer?.getText();
       const type = m.type?.getText();
       renames.set(name, newDeclarationName + '.value'); // TODO ew, don't mutate renames, do it a better way
-      return `const ${newDeclarationName}${type ? ': Ref<' + type + '>' : ''}${initializer ? ' = ref(' + demarginExceptFirstLine(initializer) + ')' : ''};`;
+      return `const ${newDeclarationName}${type ? ': Ref<' + type + '>' : ''} = ref(${initializer ? demarginExceptFirstLine(initializer) : type ? 'null as ' + type : 'null as any'});`;
     }
   } else if (ts.isMethodDeclaration(m)) {
     const body = transformBody(m.body, renames);
