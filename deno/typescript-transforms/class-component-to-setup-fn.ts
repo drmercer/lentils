@@ -3,6 +3,19 @@ import ts from './typescript.ts';
 import type { ts as TS } from './typescript.ts';
 import { getBoundNames, mapPropertyAccesses, nodesText, parse, returnedObject, transformAll, transformChildren } from "./util.ts";
 
+/** Vue 2 lifecycle hooks */
+const lifecycleHooks: readonly string[] = [
+  'beforeCreate',
+  'created',
+  'beforeMount',
+  'mounted',
+  'beforeUpdate',
+  'updated',
+  'activated',
+  'beforeDestroy',
+  'destroyed',
+];
+
 if (import.meta.main) {
   console.log("Running...");
 
@@ -55,12 +68,15 @@ export function transformTs(source: string, wordsInTemplate: Set<string>): strin
       if (/vue-property-decorator|vue-class-component/.test(importText)) {
         const imports: string[] = [
           'defineComponent',
-          /\bcomputed\(/.test(transformedComponent) ? 'computed' : undefined,
-          /\bRef</.test(transformedComponent) ? 'Ref' : undefined,
-          /\bref\(/.test(transformedComponent) ? 'ref' : undefined,
-          /\bonMounted\(/.test(transformedComponent) ? 'onMounted' : undefined,
-          /\bwatch\(/.test(transformedComponent) ? 'watch' : undefined,
-        ].filter(isNonNull).sort();
+          'computed',
+          'Ref',
+          'ref',
+          'watch',
+          'nextTick',
+          ...lifecycleHooks.map(hook => 'on' + capitalize(hook)),
+        ].filter(isNonNull)
+          .filter(name => new RegExp('\\b' + name + '\\b').test(transformedComponent))
+          .sort();
         return `import { ${imports.join(', ')} } from '@vue/composition-api';`;
       } else if (/\bDmInject\b/.test(importText)) {
         return importText.replace('DmInject', 'dmInject').replace('vue-injector', 'composables/injector');
@@ -167,7 +183,7 @@ function runtimeType(type: string): string|undefined {
   } else if (/^\(.*\)\s*=>\s*.*/.test(type)) { // function
     return `Function as () => (${type})`;
   } else if (/^[A-Z]\w*$/.test(type)) { // custom class
-    return type.substr(0, 1).toUpperCase() + type.substr(1);
+    return type;
   } else if (/\[\]$/.test(type)) { // array
     return `Array as () => ${type}`;
   } else if (/^['"]/.test(type)) { // string literal
@@ -223,6 +239,7 @@ function classMembersToStatements(members: readonly TS.ClassElement[], props: Pr
       .map(({ name, renamedName }) => [name, renamedName!]),
   );
   renames.set('$emit', 'emit');
+  renames.set('$nextTick', 'nextTick');
 
   const statements = declarations
     .map<string|undefined>(({member, name}) => {
@@ -372,18 +389,12 @@ function indent(text: string, levels: number): string {
   return text.replaceAll(/\n/g, '\n' + padding);
 }
 
+function capitalize(name: string): string {
+  return name.substr(0, 1).toUpperCase() + name.substr(1);
+}
+
 function isLifecycleHook(name: string): boolean {
-  return [
-    'beforeCreate',
-    'created',
-    'beforeMount',
-    'mounted',
-    'beforeUpdate',
-    'updated',
-    'activated',
-    'beforeDestroy',
-    'destroyed',
-  ].includes(name);
+  return lifecycleHooks.includes(name);
 }
 
 function isRouterHook(name: string): boolean {
@@ -395,7 +406,7 @@ function isRouterHook(name: string): boolean {
 }
 
 function lifecycleHookDeclaration(hookname: string, async: boolean, body: string) {
-  const hook = hookname.substr(0, 1).toUpperCase() + hookname.substr(1);
+  const hook = capitalize(hookname);
   return `
 on${hook}(${async ? 'async ' : ''}() => {
   ${indent(body, 1)}
