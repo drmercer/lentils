@@ -148,7 +148,12 @@ export class Injector {
     if (isArray(metadata) && metadata.every(isFunction)) {
       const ctors = metadata as Constructor<unknown>[];
       const paramKeys = getParamInjectKeys(ctor);
-      return ctors.map((c, idx) => paramKeys.get(idx) || c);
+      const fullParamKeys = ctors.map((c, idx) => paramKeys.get(idx) || c);
+      const badIndex = fullParamKeys.findIndex(c => c === Object);
+      if (badIndex >= 0) {
+        console.warn('Possibly missing @UseInjectKey on ' + badIndex + 'th parameter for ' + ctor.name);
+      }
+      return fullParamKeys;
     } else {
       if (!isUndefined(metadata)) {
         console.warn(`Found weird metadata for Constructor '${ctor.name}':`, metadata);
