@@ -113,7 +113,8 @@ function injectableClassMembersToStatements(members: readonly TS.ClassElement[])
   const transformedMembers: string[] = members
     .map<string>(m => {
       if (ts.isConstructorDeclaration(m)) {
-        return demargin(transformAll(m.body?.statements ?? [], (n) => removeThisAndDoRenames(n, renames)));
+        const bodyStatements = m.body?.statements;
+        return bodyStatements ? demargin(transformAll(bodyStatements, (n) => removeThisAndDoRenames(n, renames))) : '';
       }
       const d = declarations.find(d => d.member === m)!;
       const comment = demarginExceptFirstLine(m.getSourceFile().text.substr(m.getFullStart(), m.getLeadingTriviaWidth()));
@@ -143,15 +144,16 @@ function memberToStatement(m: TS.ClassElement, d: Declaration, renames: Map<stri
     if (!isReadonly && assumeIsReadonly) {
       console.warn(`WARNING: property ${name} is public, assuming it is readonly`);
     }
-    const initializer = m.initializer ? removeThisAndDoRenames(m.initializer, renames) : undefined;
+    const initializer = m.initializer ? demarginExceptFirstLine(removeThisAndDoRenames(m.initializer, renames)) : undefined;
     const type = m.type?.getText();
     return `${assumeIsReadonly ? 'const' : 'let'} ${newDeclarationName}${type ? ': ' + type : ''}${initializer ? ' = ' + initializer : ''};`;
   } else if (ts.isMethodDeclaration(m)) {
     const async: boolean = m.modifiers?.some(mod => mod.kind === ts.SyntaxKind.AsyncKeyword) ?? false;
     const typeParams = m.typeParameters ? `<${nodesText(m.typeParameters)}>` : '';
     const returnType = m.type ? ': ' + m.type.getText() : '';
-    const params = m.parameters ? nodesText(m.parameters) : '';
-    const body = demargin(transformAll(m.body?.statements ?? [], (n) => removeThisAndDoRenames(n, renames)))
+    const params = m.parameters ? indent(demarginExceptFirstLine(nodesText(m.parameters)), 1) : '';
+    const bodyStatements = m.body?.statements;
+    const body = (bodyStatements ? demargin(transformAll(bodyStatements, (n) => removeThisAndDoRenames(n, renames))) : '')
       .trim()
       .split('\n')
       .join('\n  ');

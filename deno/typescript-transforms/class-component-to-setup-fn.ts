@@ -358,7 +358,8 @@ function buildWatchStatements(decorator: TS.Decorator, functionName: string): st
 }
 
 function transformBody(body: TS.FunctionBody|undefined, renames: Map<string, string>): string {
-  return demargin(transformAll(body?.statements ?? [], (n) => removeThisAndDoRenames(n, renames)))
+  const bodyStatements = body?.statements;
+  return (bodyStatements ? demargin(transformAll(bodyStatements, (n) => removeThisAndDoRenames(n, renames))) : '')
     .trim();
 }
 

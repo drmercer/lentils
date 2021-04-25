@@ -12,6 +12,7 @@ const yeet = 'hi';
 
 @Injectable()
 export default class Foo {
+
   constructor(
     public bagel: Bagel,
     private potato: Potato,
@@ -24,6 +25,12 @@ export default class Foo {
    */
   private bar = 'hello'; // some comment
 
+  private test = {
+    hello: {
+      friendly: 'world',
+    },
+  };
+
   /**
    * Some yeets
    */
@@ -33,6 +40,13 @@ export default class Foo {
     // foo
 
     console.log("hello", this.bar2, bar2);
+  }
+
+  public yeet2(
+    a: string,
+    b: string,
+  ) {
+    console.log(a, b);
   }
 
   public bar2 = 'hello';
@@ -61,6 +75,12 @@ export const Foo = injectable('Foo', (inject) => {
    */
   let bar = 'hello'; // some comment
 
+  let test = {
+    hello: {
+      friendly: 'world',
+    },
+  };
+
   /**
    * Some yeets
    */
@@ -72,12 +92,20 @@ export const Foo = injectable('Foo', (inject) => {
     console.log("hello", $bar2, bar2);
   }
 
+  function yeet2(
+    a: string,
+    b: string,
+  ) {
+    console.log(a, b);
+  }
+
   const $bar2 = 'hello';
 
   return {
     bagel,
     bar2: $bar2,
     yeet,
+    yeet2,
   };
 });
 

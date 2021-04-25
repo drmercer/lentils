@@ -21,7 +21,7 @@ export function transformChildren(node: TS.Node, transformFn: (child: TS.Node) =
   return insertReplacements(source, sourceStart, replacements);
 }
 
-export function transformAll(nodes: readonly TS.Node[], transformFn: (child: TS.Node) => string | undefined): string {
+export function transformAll(nodes: TS.NodeArray<TS.Node>, transformFn: (child: TS.Node) => string | undefined): string {
   if (!nodes[0]) {
     return '';
   }
@@ -118,15 +118,12 @@ return {
 };`.trim();
 }
 
-export function nodesText(s: readonly TS.Node[]): string {
+export function nodesText(s: TS.NodeArray<TS.Node>): string {
   const [s1] = s;
-  const s2 = s[s.length - 1];
   if (!s1) {
     return '';
-  } else if (s1 === s2) {
-    return s1.getFullText();
   } else {
-    return s1.getSourceFile().text.substring(s1.getFullStart(), s2.getEnd());
+    return s1.getSourceFile().text.substring(s.pos, s.end) + (s.hasTrailingComma ? '\n' : '');
   }
 }
 
@@ -184,9 +181,10 @@ export function demargin(text: string): string {
     .replace(marginRegex, '');
 }
 
-export function indent(text: string, levels: number): string {
+export function indent(text: string, levels: number, firstLine = false): string {
   const padding = Array.from({ length: levels }, () => '  ').join('');
-  return text.replaceAll(/\n/g, '\n' + padding);
+  const regex = new RegExp('(\\n' + (firstLine ? '|^' : '') + ')([^\n])', 'g');
+  return text.replaceAll(regex, '$1' + padding + '$2');
 }
 
 export function capitalize(name: string): string {
