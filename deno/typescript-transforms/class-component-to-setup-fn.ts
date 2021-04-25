@@ -269,7 +269,7 @@ function memberToStatement(
       const initializer = m.initializer?.getText();
       const type = m.type?.getText();
       renames.set(name, newDeclarationName + '.value'); // TODO ew, don't mutate renames, do it a better way
-      return `const ${newDeclarationName}${type ? ': Ref<' + type + '>' : ''} = ref(${initializer ? demarginExceptFirstLine(initializer) : type ? 'null as ' + type : 'null as any'});`;
+      return `const ${newDeclarationName}${type ? ': Ref<' + type + '>' : ''} = ref(${initializer ? demarginExceptFirstLine(initializer) : type ? 'null!' : 'null as any'});`;
     }
   } else if (ts.isMethodDeclaration(m)) {
     const body = transformBody(m.body, renames);

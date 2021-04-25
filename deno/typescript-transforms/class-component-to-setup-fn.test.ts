@@ -110,7 +110,7 @@ export default defineComponent({
   setup(props, {emit}) {
     const appRouter = dmInject(AppRouter);
 
-    const element: Ref<HTMLElement> = ref(null as HTMLElement);
+    const element: Ref<HTMLElement> = ref(null!);
 
     const yeet: Ref<number> = computed(() => props.yeet);
     const yeet2: Ref<'foo'|'bar'> = computed(() => props.yeet2);
