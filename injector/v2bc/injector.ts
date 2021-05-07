@@ -1,7 +1,8 @@
+import { makeInjector as v2makeInjector, Override } from '../v2/injector';
 import { isArray, isFunction, isUndefined } from '../../common/types/checks';
 import { Constructor } from '../../common/types/meta';
 import 'reflect-metadata';
-import { InjectKey, injectable as v2injectable, Injector as V2Injector } from '../v2/injector';
+import { InjectKey, injectable as v2injectable } from '../v2/injector';
 
 export type { InjectKey };
 export { override } from '../v2/injector';
@@ -68,24 +69,30 @@ function getCtorKey<T>(ctor: Constructor<T>): InjectKey<T> {
 }
 
 function getV2Key<T>(key: AbstractInjectKey<T>): InjectKey<T> {
-  if (key === Injector as unknown || key === V2Injector as unknown) {
+  if (key === Injector as unknown) {
     return injectorKey as unknown as InjectKey<T>;
   }
   return isFunction(key) ? getCtorKey(key) : key;
 }
 
-const injectorKey = injectable<Injector>('Injector', () => {
-  throw new Error("v2bc injector is broken, this code should never actually be reached");
+export class Injector {
+  constructor(
+    public readonly get: <T>(key: AbstractInjectKey<T>) => T,
+  ) { }
+}
+
+const injectorKey = injectable<Injector>('Injector', (inject) => {
+  return new Injector(inject);
 });
 
-export class Injector extends V2Injector {
-  public get<T>(key: AbstractInjectKey<T>): T {
-    const v2Key = getV2Key(key);
-    if (v2Key === injectorKey as unknown) {
-      return this as any;
-    }
-    return super.get(getV2Key(key));
+export function makeInjector(overrides: Override<unknown>[] = []): [<T>(key: AbstractInjectKey<T>) => T] {
+  const [v2get] = v2makeInjector(overrides);
+
+  function get<T>(key: AbstractInjectKey<T>): T {
+    return v2get(getV2Key(key));
   }
+
+  return [get];
 }
 
 export type InjectedValue<K extends AbstractInjectKey<unknown>> = K extends AbstractInjectKey<infer T> ? T : never;
