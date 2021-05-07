@@ -1,7 +1,7 @@
 import { isString } from '../../common/types/checks.ts';
 import { Emitter } from '../../common/events/emitter.ts';
 import { standardTemplate, demargin } from '../../deno/denoified-common/string/string.ts';
-import { Injector, injectable } from '../../injector/v2/injector.ts';
+import { makeInjector, injectable } from '../../injector/v2/injector.ts';
 import { assertEquals } from "https://deno.land/std@0.77.0/testing/asserts.ts";
 
 Deno.test("isString is function", () => {
@@ -57,10 +57,10 @@ Deno.test("Injector v2 works", () => {
     };
   });
 
-  const injector = new Injector();
-  const c = injector.get(C);
-  const b = injector.get(B)
-  const a = injector.get(A);
+  const [inject] = makeInjector();
+  const c = inject(C);
+  const b = inject(B)
+  const a = inject(A);
 
   assertEquals(b.bar, 'ba');
   assertEquals(c.bagel, 'caba');
