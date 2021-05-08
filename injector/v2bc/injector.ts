@@ -1,4 +1,4 @@
-import { makeInjector as v2makeInjector, Override } from '../v2/injector';
+import { InjectFn as V2InjectFn, makeInjector as v2makeInjector, Override } from '../v2/injector';
 import { isArray, isFunction, isUndefined } from '../../common/types/checks';
 import { Constructor } from '../../common/types/meta';
 import 'reflect-metadata';
@@ -75,11 +75,11 @@ function getV2Key<T>(key: AbstractInjectKey<T>): InjectKey<T> {
   return isFunction(key) ? getCtorKey(key) : key;
 }
 
-function makeInject(v2inject: <T>(key: InjectKey<T>) => T): <T>(key: AbstractInjectKey<T>) => T {
-  return key => {
-    return v2inject(getV2Key(key));
-  };
-}
+export type InjectFn = <T>(key: AbstractInjectKey<T>) => T;
+
+function makeInjectFn(v2inject: V2InjectFn): InjectFn {
+  return key => v2inject(getV2Key(key));
+};
 
 export class Injector {
   constructor(
@@ -94,7 +94,7 @@ const injectorKey = injectable<Injector>('Injector', (inject) => {
 export function makeInjector(overrides: Override<unknown>[] = []): [<T>(key: AbstractInjectKey<T>) => T] {
   const [v2get] = v2makeInjector(overrides);
 
-  const get = makeInject(v2get);
+  const get = makeInjectFn(v2get);
 
   return [get];
 }
@@ -106,6 +106,6 @@ export function injectable<T>(
   factory: (inject: <U>(key: AbstractInjectKey<U>) => U) => T,
 ): InjectKey<T> {
   return v2injectable(name, (v2inject) => {
-    return factory(makeInject(v2inject));
+    return factory(makeInjectFn(v2inject));
   });
 }
