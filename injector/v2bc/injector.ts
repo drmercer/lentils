@@ -75,6 +75,12 @@ function getV2Key<T>(key: AbstractInjectKey<T>): InjectKey<T> {
   return isFunction(key) ? getCtorKey(key) : key;
 }
 
+function makeInject(v2inject: <T>(key: InjectKey<T>) => T): <T>(key: AbstractInjectKey<T>) => T {
+  return key => {
+    return v2inject(getV2Key(key));
+  };
+}
+
 export class Injector {
   constructor(
     public readonly get: <T>(key: AbstractInjectKey<T>) => T,
@@ -88,9 +94,7 @@ const injectorKey = injectable<Injector>('Injector', (inject) => {
 export function makeInjector(overrides: Override<unknown>[] = []): [<T>(key: AbstractInjectKey<T>) => T] {
   const [v2get] = v2makeInjector(overrides);
 
-  function get<T>(key: AbstractInjectKey<T>): T {
-    return v2get(getV2Key(key));
-  }
+  const get = makeInject(v2get);
 
   return [get];
 }
@@ -102,8 +106,6 @@ export function injectable<T>(
   factory: (inject: <U>(key: AbstractInjectKey<U>) => U) => T,
 ): InjectKey<T> {
   return v2injectable(name, (v2inject) => {
-    return factory(key => {
-      return v2inject(getV2Key(key));
-    })
+    return factory(makeInject(v2inject));
   });
 }
