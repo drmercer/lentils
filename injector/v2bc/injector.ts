@@ -1,8 +1,13 @@
-import { InjectFn as V2InjectFn, makeInjector as v2makeInjector, Override } from '../v2/injector';
+import {
+  makeInjector as v2makeInjector,
+  injectable as v2injectable,
+  InjectFn as V2InjectFn,
+  InjectKey,
+  Override,
+} from '../v2/injector';
 import { isArray, isFunction, isUndefined } from '../../common/types/checks';
 import { Constructor } from '../../common/types/meta';
 import 'reflect-metadata';
-import { InjectKey, injectable as v2injectable } from '../v2/injector';
 
 export type { InjectKey };
 export { override } from '../v2/injector';
