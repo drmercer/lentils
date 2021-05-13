@@ -57,7 +57,7 @@ Deno.test("Injector v2 works", () => {
     };
   });
 
-  const [inject] = makeInjector();
+  const inject = makeInjector();
   const c = inject(C);
   const b = inject(B)
   const a = inject(A);

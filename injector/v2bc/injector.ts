@@ -96,12 +96,12 @@ const injectorKey = injectable<Injector>('Injector', (inject) => {
   return new Injector(inject);
 });
 
-export function makeInjector(overrides: Override<unknown>[] = []): [<T>(key: AbstractInjectKey<T>) => T] {
-  const [v2get] = v2makeInjector(overrides);
+export function makeInjector(overrides: Override<unknown>[] = []): InjectFn {
+  const v2get = v2makeInjector(overrides);
 
   const get = makeInjectFn(v2get);
 
-  return [get];
+  return get;
 }
 
 export type InjectedValue<K extends AbstractInjectKey<unknown>> = K extends AbstractInjectKey<infer T> ? T : never;

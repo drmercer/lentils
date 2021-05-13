@@ -108,7 +108,7 @@ const MisdeclaredDep = injectable('MisdeclaredDep', A, (a: { bar: string }) => {
 
 describe('injector v2', () => {
   it('should work', () => {
-    const [inject] = makeInjector();
+    const inject = makeInjector();
     const c = inject(C);
     const b = inject(B)
     const a = inject(A);
@@ -125,7 +125,7 @@ describe('injector v2', () => {
   })
 
   it('should allow overriding with key', () => {
-    const [inject] = makeInjector([
+    const inject = makeInjector([
       override(A).withOther(A2),
     ]);
     const c = inject(C);
@@ -140,7 +140,7 @@ describe('injector v2', () => {
   })
 
   it('should allow overriding with key (optional dep, for demonstration)', () => {
-    const [inject] = makeInjector([
+    const inject = makeInjector([
       override(OptionalA).withOther(A),
     ]);
     const c = inject(C);
@@ -149,7 +149,7 @@ describe('injector v2', () => {
   })
 
   it('should allow overriding with value', () => {
-    const [inject] = makeInjector([
+    const inject = makeInjector([
       override(A).withValue({ foo: 'A' }),
     ]);
     const c = inject(C);
@@ -164,7 +164,7 @@ describe('injector v2', () => {
   })
 
   it('should throw if override loop exists', () => {
-    const [inject] = makeInjector([
+    const inject = makeInjector([
       override(A).withOther(A2),
       override(A2).withOther(A3),
       override(A3).withOther(A),
