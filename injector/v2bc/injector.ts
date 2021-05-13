@@ -1,7 +1,7 @@
 import {
   makeInjector as v2makeInjector,
   injectable as v2injectable,
-  InjectFn as V2InjectFn,
+  Injector as V2Injector,
   InjectKey,
   Override,
 } from '../v2/injector';
@@ -74,32 +74,35 @@ function getCtorKey<T>(ctor: Constructor<T>): InjectKey<T> {
 }
 
 function getV2Key<T>(key: AbstractInjectKey<T>): InjectKey<T> {
-  if (key === Injector as unknown) {
+  if (key === OldInjector as unknown) {
     return injectorKey as unknown as InjectKey<T>;
   }
   return isFunction(key) ? getCtorKey(key) : key;
 }
 
-export type InjectFn = <T>(key: AbstractInjectKey<T>) => T;
+export type Injector = <T>(key: AbstractInjectKey<T>) => T;
 
-function makeInjectFn(v2inject: V2InjectFn): InjectFn {
+function injectorFromV2Injector(v2inject: V2Injector): Injector {
   return key => v2inject(getV2Key(key));
 };
 
-export class Injector {
+/**
+ * @deprecated Use new Injector instead
+ */
+export class OldInjector {
   constructor(
     public readonly get: <T>(key: AbstractInjectKey<T>) => T,
   ) { }
 }
 
-const injectorKey = injectable<Injector>('Injector', (inject) => {
-  return new Injector(inject);
+const injectorKey = injectable<OldInjector>('Injector', (inject) => {
+  return new OldInjector(inject);
 });
 
-export function makeInjector(overrides: Override<unknown>[] = []): InjectFn {
+export function makeInjector(overrides: Override<unknown>[] = []): Injector {
   const v2get = v2makeInjector(overrides);
 
-  const get = makeInjectFn(v2get);
+  const get = injectorFromV2Injector(v2get);
 
   return get;
 }
@@ -111,6 +114,6 @@ export function injectable<T>(
   factory: (inject: <U>(key: AbstractInjectKey<U>) => U) => T,
 ): InjectKey<T> {
   return v2injectable(name, (v2inject) => {
-    return factory(makeInjectFn(v2inject));
+    return factory(injectorFromV2Injector(v2inject));
   });
 }

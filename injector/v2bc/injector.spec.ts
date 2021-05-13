@@ -1,4 +1,4 @@
-import { Injectable, injectable, InjectKey, Injector, makeInjector, override, UseInjectKey } from './injector';
+import { Injectable, injectable, InjectKey, OldInjector, makeInjector, override, UseInjectKey } from './injector';
 
 interface A {
   foo: string;
@@ -50,7 +50,7 @@ class ClassBased2 {
   constructor(
     public cb1: ClassBased1,
     @UseInjectKey(A) public a: A,
-    public injector: Injector,
+    public injector: OldInjector,
   ) {
 
   }
