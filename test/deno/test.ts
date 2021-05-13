@@ -1,7 +1,7 @@
 import { isString } from '../../common/types/checks.ts';
 import { Emitter } from '../../common/events/emitter.ts';
 import { standardTemplate, demargin } from '../../deno/denoified-common/string/string.ts';
-import { makeInjector, injectable } from '../../injector/v2/injector.ts';
+import { makeInjector, injectable } from 'https://unpkg.com/@drmercer/injector@latest/injector.ts';
 import { assertEquals } from "https://deno.land/std@0.77.0/testing/asserts.ts";
 
 Deno.test("isString is function", () => {

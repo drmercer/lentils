@@ -279,6 +279,11 @@
     exec-sh "^0.3.2"
     minimist "^1.2.0"
 
+"@drmercer/injector@^0.1.2":
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/@drmercer/injector/-/injector-0.1.2.tgz#153b4796d4d7e44d83268ef7f7d5b57f2acd3178"
+  integrity sha512-heqpUcDafRVBaFiKpujx8Pe8m5e3YEgwqV8etwU0qCDxSHAYyLZubhsELcYWswYYpUFqWh1ZWPbR2tcFWqDQ6A==
+
 "@istanbuljs/load-nyc-config@^1.0.0":
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@istanbuljs/load-nyc-config/-/load-nyc-config-1.1.0.tgz#fd3db1d59ecf7cf121e80650bb86712f9b55eced"
