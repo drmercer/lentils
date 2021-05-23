@@ -6,7 +6,8 @@
       "dom",
       "dom.iterable",
       "scripthost"
-    ]
+    ],
+    "types": []
   },
   "include": [
     "./web/**/*.ts",

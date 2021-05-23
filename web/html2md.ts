@@ -7,10 +7,13 @@ export function html2md(html: string): string {
 }
 
 const noop: (...args: any[]) => void = () => { };
+
+const DEBUG = false;
+
 const logger = {
-  log: process.env.NODE_ENV !== 'development' ? noop : console.log.bind(console),
-  group: process.env.NODE_ENV !== 'development' ? noop : console.groupEnd.bind(console),
-  groupEnd: process.env.NODE_ENV !== 'development' ? noop : console.group.bind(console),
+  log: DEBUG ? console.log.bind(console) : noop,
+  group: DEBUG ? console.groupEnd.bind(console) : noop,
+  groupEnd: DEBUG ? console.group.bind(console) : noop,
 }
 
 function element2md(node: Node): string {
