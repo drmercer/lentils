@@ -22,30 +22,7 @@ function element2md(node: Node, context: Context): string {
     // TODO put the title after the src, like [this](example "tada").
     return `![${node.alt || node.title}](${node.src})`;
   } else if (isBlock(node)) {
-    context.log?.("is block node: <" + node.tagName.toLowerCase() + ">");
-    // block element
-    if (isCode(node)) {
-      const fence = '\n```\n';
-
-      const contents = node.textContent || "";
-
-      const result = '\n' + fence + contents + fence + '\n';
-      context.log?.(`code block <${node.nodeName}> result: ${result}`);
-      return result;
-    } else {
-
-      let contents = Array.from(node.childNodes)
-        .map(e => element2md(e, context))
-        .join('');
-
-      const headingLevel = maybeHeadingLevel(node);
-      if (headingLevel && contents) {
-        const headingPrefix = new Array(headingLevel).fill('#').join('')
-        contents = headingPrefix + ' ' + contents.trim();
-      }
-
-      return contents.replace(/\b +\n? */g, ' ').replace(/^\s*|\s*$/, '\n\n');
-    }
+    return blockElement2md(node, context);
   } else {
     // inline element
     if (isComment(node)) {
@@ -86,6 +63,33 @@ function element2md(node: Node, context: Context): string {
       .join('');
 
     return contents ? before + contents + after : '';
+  }
+}
+
+function blockElement2md(node: HTMLElement, context: Context) {
+  const tagName = node.tagName.toLowerCase();
+  context.log?.(`is block node: <${tagName}>`);
+  if (isCode(node)) {
+    const fence = '\n```\n';
+
+    const contents = node.textContent || "";
+
+    const result = '\n' + fence + contents + fence + '\n';
+    context.log?.(`code block <${tagName}> result: ${result}`);
+    return result;
+  } else {
+
+    let contents = Array.from(node.childNodes)
+      .map(e => element2md(e, context))
+      .join('');
+
+    const headingLevel = maybeHeadingLevel(node);
+    if (headingLevel && contents) {
+      const headingPrefix = new Array(headingLevel).fill('#').join('')
+      contents = headingPrefix + ' ' + contents.trim();
+    }
+
+    return contents.replace(/\b +\n? */g, ' ').replace(/^\s*|\s*$/, '\n\n');
   }
 }
 
