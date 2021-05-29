@@ -1,5 +1,10 @@
 import { html2md } from './html2md';
 import { demargin } from '../common/string/string';
+import MarkdownIt from 'markdown-it';
+
+function makeMd() {
+  return MarkdownIt();
+}
 
 describe('html2md', () => {
   it('should work on very basic text', () => {
@@ -42,5 +47,73 @@ describe('html2md', () => {
       can mix and match them across a codebase or even in a single file. It
       just depends on which style you feel makes your tests simpler.
     `.trim())
+  })
+
+  describe("stability tests", () => {
+
+    /**
+     * Tests that html2md gives equivalent markdown to the given markdownStr when the
+     * rendered HTML is given to html2md.
+     */
+    function testStability(markdown: string) {
+      const md = makeMd();
+
+      const render1 = md.render(markdown);
+
+      const generatedMarkdown = html2md(render1);
+
+      const render2 = md.render(generatedMarkdown);
+
+      expect(render2).toEqual(render1);
+    }
+
+    it("should be stable on basic markdown", () => {
+      testStability(demargin`
+        # foo
+
+        Paragraph
+
+        ## subheading
+
+        Another paragraph
+      `);
+    })
+
+    xit("should be stable on bulleted lists", () => {
+      testStability(demargin`
+        * Bulleted
+        * List
+      `);
+    })
+
+    xit("should be stable on bulleted lists", () => {
+      testStability(demargin`
+        1. Numbered
+        2. List
+      `);
+    })
+
+    xit("should be stable on complex markdown", () => {
+      testStability(demargin`
+        # foo
+
+        Paragraph
+
+        * Bulleted
+        * List
+
+        ## subheading
+
+        Another paragraph
+
+        1. Numbered
+        2. List
+
+        \`\`\`shell
+        echo "Code block!"
+        \`\`\`
+      `);
+    })
+
   })
 });
