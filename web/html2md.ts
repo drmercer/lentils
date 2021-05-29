@@ -1,46 +1,42 @@
-export function html2md(html: string): string {
+interface Options {
+  log?: (line: string) => void;
+  includeComments?: boolean;
+}
+
+interface Context extends Options { }
+
+export function html2md(html: string, options: Options = {}): string {
   const parsed = new DOMParser().parseFromString(html, 'text/html');
-  return element2md(parsed.body)
+  const context = {
+    ...options,
+  };
+  return element2md(parsed.body, context)
     .trim()
     .replace(/[ \t]+\n/g, '\n') // trim whitespace at EOL
     .replace(/\n{3,}/g, '\n\n') // Collapse newlines down to at most 2
 }
 
-const noop: (...args: any[]) => void = () => { };
-
-const DEBUG = false;
-
-const logger = {
-  log: DEBUG ? console.log.bind(console) : noop,
-  group: DEBUG ? console.groupEnd.bind(console) : noop,
-  groupEnd: DEBUG ? console.group.bind(console) : noop,
-}
-
-function element2md(node: Node): string {
+function element2md(node: Node, context: Context): string {
   if (node instanceof HTMLImageElement && node.src) {
     // image element - special case because no contents
     // TODO put the title after the src, like [this](example "tada").
     return `![${node.alt || node.title}](${node.src})`;
   } else if (isBlock(node)) {
-    logger.log("is block node: <" + node.tagName.toLowerCase() + ">");
+    context.log?.("is block node: <" + node.tagName.toLowerCase() + ">");
     // block element
     if (isCode(node)) {
       const fence = '\n```\n';
 
-      logger.group("code block <" + node.nodeName + ">");
       const contents = node.textContent || "";
-      logger.groupEnd();
 
       const result = '\n' + fence + contents + fence + '\n';
-      logger.log(`code block <${node.nodeName}> result`, { result });
+      context.log?.(`code block <${node.nodeName}> result: ${result}`);
       return result;
     } else {
 
-      logger.group(node.nodeName);
       let contents = Array.from(node.childNodes)
-        .map(element2md)
+        .map(e => element2md(e, context))
         .join('');
-      logger.groupEnd();
 
       const headingLevel = maybeHeadingLevel(node);
       if (headingLevel && contents) {
@@ -51,10 +47,9 @@ function element2md(node: Node): string {
       return contents.replace(/\b +\n? */g, ' ').replace(/^\s*|\s*$/, '\n\n');
     }
   } else {
-    logger.log("is inline node: <" + node.nodeName + ">");
     // inline element
     if (isComment(node)) {
-      const contents = node.textContent;
+      const contents = context.includeComments ? node.textContent : undefined;
       return contents ? ` <!-- ${contents} -->` : '';
     }
     if (isText(node)) {
@@ -71,26 +66,24 @@ function element2md(node: Node): string {
       after = '](' + node.href.trim() + ')';
     }
     if (isBold(node)) {
-      logger.log("bold!");
+      context.log?.("bold!");
       before = before + '**';
       after = '**' + after;
     }
     if (isItalic(node)) {
-      logger.log("italic!");
+      context.log?.("italic!");
       before = before + '_';
       after = '_' + after;
     }
     if (isCode(node)) {
-      logger.log("code!");
+      context.log?.("code!");
       before = before + '`';
       after = '`' + after;
     }
 
-    logger.group(node.nodeName);
     let contents = Array.from(node.childNodes)
-      .map(element2md)
+      .map(e => element2md(e, context))
       .join('');
-    logger.groupEnd();
 
     return contents ? before + contents + after : '';
   }

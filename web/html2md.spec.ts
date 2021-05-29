@@ -60,11 +60,19 @@ describe('html2md', () => {
 
       const render1 = md.render(markdown);
 
-      const generatedMarkdown = html2md(render1);
+      let logStr = '';
+      const log = (line: string) => { logStr += line + '\n'; }
+
+      const generatedMarkdown = html2md(render1, { log });
 
       const render2 = md.render(generatedMarkdown);
 
-      expect(render2).toEqual(render1);
+      try {
+        expect(render2).toEqual(render1);
+      } catch (err) {
+        console.error("html2md log:\n" + logStr);
+        throw err;
+      }
     }
 
     it("should be stable on basic markdown", () => {
