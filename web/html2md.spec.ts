@@ -30,7 +30,7 @@ describe('html2md', () => {
     `)).toBe(demargin`
       You can combine \`async\` and \`await\` with \`.resolves\` or \`.rejects\`.
 
-      \`\`\`
+      \`\`\`js
       test('the data is peanut butter', async () => {
         await expect(fetchData()).resolves.toBe('peanut butter');
       });
@@ -38,14 +38,11 @@ describe('html2md', () => {
       test('the fetch fails with an error', async () => {
         await expect(fetchData()).rejects.toThrow('error');
       });
-
       \`\`\`
 
       In these cases, \`async\` and \`await\` are effectively syntactic sugar for the same logic as the promises example uses.
 
-      None of these forms is particularly superior to the others, and you
-      can mix and match them across a codebase or even in a single file. It
-      just depends on which style you feel makes your tests simpler.
+      None of these forms is particularly superior to the others, and you can mix and match them across a codebase or even in a single file. It just depends on which style you feel makes your tests simpler.
     `.trim())
   })
 
@@ -60,19 +57,11 @@ describe('html2md', () => {
 
       const render1 = md.render(markdown);
 
-      let logStr = '';
-      const log = (line: string) => { logStr += line + '\n'; }
-
-      const generatedMarkdown = html2md(render1, { log });
+      const generatedMarkdown = html2md(render1);
 
       const render2 = md.render(generatedMarkdown);
 
-      try {
-        expect(render2).toEqual(render1);
-      } catch (err) {
-        console.error("html2md log:\n" + logStr);
-        throw err;
-      }
+      expect(render2).toEqual(render1);
     }
 
     it("should be stable on basic markdown", () => {
@@ -87,21 +76,21 @@ describe('html2md', () => {
       `);
     })
 
-    xit("should be stable on bulleted lists", () => {
+    it("should be stable on bulleted lists", () => {
       testStability(demargin`
         * Bulleted
         * List
       `);
     })
 
-    xit("should be stable on bulleted lists", () => {
+    it("should be stable on bulleted lists", () => {
       testStability(demargin`
         1. Numbered
         2. List
       `);
     })
 
-    xit("should be stable on complex markdown", () => {
+    it("should be stable on complex markdown", () => {
       testStability(demargin`
         # foo
 
