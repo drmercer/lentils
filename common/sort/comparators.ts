@@ -40,8 +40,22 @@ export const compareNumbers: CompareFn<number> = (a: number, b: number) => a - b
 
 export const compareStrings: CompareFn<string> = (a: string, b: string) => a < b ? -1 : a > b ? 1 : 0;
 
+/**
+ * Returns a comparator that sorts according to the given comparator, but in reverse order.
+ *
+ * Note: I recommend just using `-` directly instead, like so:
+ *
+ * ```
+ * arr.sort((a, b) => -comparator(a, b))
+ * ```
+ *
+ * This ^ method has the advantage of being elegantly combined with the `||` approach described
+ * in the comment for {@link multi}.
+ *
+ * @returns
+ */
 export function invert<T>(comparator: CompareFn<T>): CompareFn<T> {
-  return (a, b) => comparator(a, b) * -1;
+  return (a, b) => -comparator(a, b);
 }
 
 export function map<T, U>(f: (t: T) => U, c: CompareFn<U>): CompareFn<T> {
