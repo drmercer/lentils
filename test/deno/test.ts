@@ -1,7 +1,7 @@
 import { isString } from '../../common/types/checks.ts';
 import { Emitter } from '../../common/events/emitter.ts';
 import { standardTemplate, demargin } from '../../deno/denoified-common/string/string.ts';
-import { makeInjector, injectable } from 'https://unpkg.com/@drmercer/injector@latest/injector.ts';
+import { makeInjector, injectable } from 'https://unpkg.com/@drmercer/injector@0.3.0/injector.ts';
 import { assertEquals } from "https://deno.land/std@0.77.0/testing/asserts.ts";
 
 Deno.test("isString is function", () => {
@@ -31,13 +31,13 @@ Deno.test("demargin works", () => {
 
 Deno.test("Injector v2 works", () => {
 
-  const A = injectable('A', () => {
+  const A = injectable(() => {
     return {
       foo: 'a',
     };
   });
 
-  const B = injectable('B', (inject) => {
+  const B = injectable((inject) => {
     const a = inject(A);
     function getA(): unknown {
       return a;
@@ -49,7 +49,7 @@ Deno.test("Injector v2 works", () => {
     };
   });
 
-  const C = injectable('C', (inject) => {
+  const C = injectable((inject) => {
     const a = inject(A);
     const b = inject(B);
     return {
