@@ -1,20 +1,31 @@
 {
-  "name": "lentils",
+  "name": "@drmercer/lentils",
   "version": "0.0.1",
+  "author": "Dan Mercer",
+  "license": "MIT",
   "description": "A hodge-podge of useful TypeScript",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/drmercer/lentils.git"
+  },
+  "bugs": {
+    "url": "https://github.com/drmercer/lentils/issues"
+  },
+  "homepage": "https://github.com/drmercer/lentils#readme",
   "scripts": {
+    "build": "yarn ts:esm && yarn ts:cjs",
+    "clean": "git clean -dfx cjs/ esm/",
+    "preversion": "yarn clean && yarn build && yarn test",
+    "prepack": "yarn preversion",
+    "test": "yarn test:unit && yarn test:integration",
     "test:unit": "jest",
-    "test:unit-deno": "cd deno && deno test",
     "test:integration": "test/test.sh",
     "ts:esm": "tsc --project tsconfig.json",
-    "ts:cjs": "tsc --project tsconfig.cjs.json",
-    "ts": "yarn ts:esm && yarn ts:cjs"
+    "ts:cjs": "tsc --project tsconfig.cjs.json"
   },
   "gitHooks": {
     "pre-commit": "scripts/pre-commit.sh"
   },
-  "author": "Dan Mercer",
-  "private": true,
   "devDependencies": {
     "@types/jest": "^26.0.10",
     "jest": "^26.4.2",
@@ -45,5 +56,9 @@
     "reflect-metadata": "^0.1.13",
     "tslib": "^2.0.3",
     "turndown": "^7.0.0"
-  }
+  },
+  "files": [
+    "cjs/",
+    "esm/"
+  ]
 }
