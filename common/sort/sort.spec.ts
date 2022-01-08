@@ -1,4 +1,4 @@
-import { compareNumbers } from './../../deno/denoified-common/sort/comparators';
+import { compareNumbers } from './comparators';
 import { binarySearch, sortedInsertNoDuplicates } from './sort';
 
 const randomSortedArray = (length: number) => Array(length).fill(0).map(() => Math.random()).sort(compareNumbers);
