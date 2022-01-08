@@ -11,7 +11,8 @@ if [[ $PWD != */lentils/test ]]; then
 fi
 
 # Test Node
-npx tsc -b node/tsconfig.json && node node/index.js
+yarn ts:cjs
+node ../cjs/test/node/index.js
 
 # Test Deno
 cd ../deno/

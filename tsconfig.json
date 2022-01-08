@@ -1,8 +1,36 @@
 {
-  "files": [],
-  "references": [
-    {
-      "path": "./tsconfig.jest.json"
-    }
+  "compilerOptions": {
+    "target": "es2018",
+    "module": "esnext",
+    "strict": true,
+    "noImplicitReturns": true,
+    "noImplicitAny": true,
+    "importHelpers": true,
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "rootDir": "./",
+    "baseUrl": ".",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "lib": [
+      "esnext",
+      "dom",
+      "dom.iterable",
+      "scripthost"
+    ],
+    "types": [
+      "node",
+      "jest"
+    ],
+    "outDir": "./esm/"
+  },
+  "include": [
+    "./**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "./**/*.spec.ts",
+    "./deno/**/*.ts",
+    "./test/deno/**/*.ts"
   ]
 }

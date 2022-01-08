@@ -6,7 +6,9 @@
     "test:unit": "jest",
     "test:unit-deno": "cd deno && deno test",
     "test:integration": "test/test.sh",
-    "ts-check": "tsc --project tsconfig.jest.json --noEmit"
+    "ts:esm": "tsc --project tsconfig.json",
+    "ts:cjs": "tsc --project tsconfig.cjs.json",
+    "ts": "yarn ts:esm && yarn ts:cjs"
   },
   "gitHooks": {
     "pre-commit": "scripts/pre-commit.sh"
@@ -29,7 +31,7 @@
     "transform": {
       ".ts": "ts-jest"
     },
-    "testRegex": "\\.spec\\.(ts|tsx|js)$",
+    "testRegex": "\\.spec\\.(ts|tsx)$",
     "moduleFileExtensions": [
       "ts",
       "js"
