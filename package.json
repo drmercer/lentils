@@ -31,7 +31,14 @@
     "jest": "^26.4.2",
     "ts-jest": "^26.2.0",
     "typescript": "^4.0.5",
-    "yorkie": "^2.0.0"
+    "yorkie": "^2.0.0",
+    "@drmercer/injector": "^0.1.2",
+    "@types/markdown-it": "^12.0.1",
+    "@types/turndown": "^5.0.0",
+    "markdown-it": "^12.0.6",
+    "reflect-metadata": "^0.1.13",
+    "tslib": "^2.0.3",
+    "turndown": "^7.0.0"
   },
   "jest": {
     "globals": {
@@ -48,13 +55,10 @@
       "js"
     ]
   },
-  "optionalDependencies": {
+  "peerDependencies": {
     "@drmercer/injector": "^0.1.2",
-    "@types/markdown-it": "^12.0.1",
-    "@types/turndown": "^5.0.0",
     "markdown-it": "^12.0.6",
     "reflect-metadata": "^0.1.13",
-    "tslib": "^2.0.3",
     "turndown": "^7.0.0"
   },
   "files": [
