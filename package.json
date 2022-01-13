@@ -1,6 +1,6 @@
 {
   "name": "@drmercer/lentils",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "author": "Dan Mercer",
   "license": "MIT",
   "description": "A hodge-podge of useful TypeScript",
@@ -27,18 +27,18 @@
     "pre-commit": "scripts/pre-commit.sh"
   },
   "devDependencies": {
-    "@types/jest": "^26.0.10",
-    "jest": "^26.4.2",
-    "ts-jest": "^26.2.0",
-    "typescript": "^4.0.5",
-    "yorkie": "^2.0.0",
     "@drmercer/injector": "^0.1.2",
+    "@types/jest": "^26.0.10",
     "@types/markdown-it": "^12.0.1",
     "@types/turndown": "^5.0.0",
+    "jest": "^26.4.2",
     "markdown-it": "^12.0.6",
     "reflect-metadata": "^0.1.13",
+    "ts-jest": "^26.2.0",
     "tslib": "^2.0.3",
-    "turndown": "^7.0.0"
+    "turndown": "^7.0.0",
+    "typescript": "^4.0.5",
+    "yorkie": "^2.0.0"
   },
   "jest": {
     "globals": {
