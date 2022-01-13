@@ -55,12 +55,6 @@
       "js"
     ]
   },
-  "peerDependencies": {
-    "@drmercer/injector": "^0.1.2",
-    "markdown-it": "^12.0.6",
-    "reflect-metadata": "^0.1.13",
-    "turndown": "^7.0.0"
-  },
   "files": [
     "cjs/",
     "esm/"
