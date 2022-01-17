@@ -45,3 +45,7 @@ You can probably use esm.sh for direct ES module usage in the browser, just like
 ```
 import { isNonNull } from 'https://esm.sh/@drmercer/lentils/cjs/common/types/checks.js';
 ```
+
+# A note about missing dependencies
+
+Some of the code in this library depends on other libraries, like `turndown`. If you run into "missing dependency" errors, check the `devDependencies` in [`package.json`](./package.json) for the version to use. I used `devDependencies` instead of `peerDependencies` or `optionalDependencies` because I don't want those deps to be installed by default in projects that use this library, in case they're not used, and I don't want to give unnecessary errors/warnings when installing this library in a project.
