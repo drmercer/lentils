@@ -1,16 +1,25 @@
-type ListenerFn<T> = (event: T) => void
+/**
+ * A callback that handles events of type T
+ */
+export type ListenerFn<T> = (event: T) => void
 
 interface Listener<T> {
   callback: ListenerFn<T>;
   context?: unknown;
 }
 
+/**
+ * An interface that exposes only the "consumer" parts of the Emitter<T> type.
+ */
 export interface ReadonlyEmitter<T> {
   listen(callback: ListenerFn<T>, context: unknown): void;
   unlisten(callback: ListenerFn<T>, context: unknown): void;
   next(): Promise<T>;
 }
 
+/**
+ * A basic typed event emitter
+ */
 export class Emitter<T> implements ReadonlyEmitter<T> {
   private listeners: Listener<T>[] = [];
 

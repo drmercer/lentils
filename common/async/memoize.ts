@@ -1,6 +1,6 @@
 import { isObject, isBoolean } from '../types/checks';
 
-interface MemoizeOptions<A extends unknown[], T> {
+export interface MemoizeOptions<A extends unknown[], T> {
   /** defaults to JSON.stringify(args) */
   keyFn?: (...args: A) => string;
   /** defaults to 1 */
@@ -12,6 +12,9 @@ interface MemoizeOptions<A extends unknown[], T> {
 const defaultKeyFn = ((...x: unknown[]) => JSON.stringify(x));
 const defaultCacheSize = 1;
 
+/**
+ * Memoizes the given function, `f`.
+ */
 export function memoize<A extends unknown[], T>(
   options: MemoizeOptions<A, T>,
   f: (...args: A) => Promise<T>,
