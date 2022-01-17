@@ -1,6 +1,6 @@
 import { isString } from '../../common/types/checks.ts';
 import { Emitter } from '../../common/events/emitter.ts';
-import { standardTemplate, demargin } from '../../deno/denoified-common/string/string.ts';
+import { standardTemplate, demargin } from 'https://esm.sh/@drmercer/lentils/cjs/common/string/string.js';
 import { makeInjector, injectable } from 'https://unpkg.com/@drmercer/injector@0.3.0/injector.ts';
 import { assertEquals } from "https://deno.land/std@0.77.0/testing/asserts.ts";
 

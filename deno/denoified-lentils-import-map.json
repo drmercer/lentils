@@ -1,0 +1,6 @@
+{
+  "imports": {
+    "https://esm.sh/@drmercer/lentils/cjs/common/types/checks.js": "./denoified-common/types/checks.ts",
+    "https://esm.sh/@drmercer/lentils/cjs/common/string/string.js": "./denoified-common/string/string.ts"
+  }
+}

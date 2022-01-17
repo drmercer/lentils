@@ -1,4 +1,4 @@
-import { isNonNull } from '../denoified-common/types/checks.ts';
+import { isNonNull } from 'https://esm.sh/@drmercer/lentils/cjs/common/types/checks.js';
 import ts from './typescript.ts';
 import type { ts as TS } from './typescript.ts';
 import { capitalize, demargin, demarginExceptFirstLine, getBoundNames, indent, mapPropertyAccesses, nodesText, parse, returnedObject, transformAll, transformChildren } from "./util.ts";
