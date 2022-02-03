@@ -10,7 +10,7 @@ function getHeadingLevel(t: Token): number | undefined {
   return Number(level) || undefined;
 }
 
-export function getSection(headings: string[], markdown: string): string | undefined {
+export function getSectionLineRange(headings: string[], markdown: string): [number, number] | undefined {
   const md = MarkdownIt();
   const tokens: Token[] = md.parse(markdown, {});
   let level = 0;
@@ -31,25 +31,29 @@ export function getSection(headings: string[], markdown: string): string | undef
           active = true;
         }
       } else if (headingLevel === level && active) {
-        endLine = token.map?.[0];
         active = false;
-        // console.log('Setting endLine to ' + endLine, { prevToken, token, headingLevel });
       } else if (headingLevel < level) {
         level = headingLevel;
-        if (active) {
-          endLine = token.map?.[0];
-          active = false;
-          // console.log('  Setting endLine to ' + endLine, { token, headingLevel });
-        }
+        active = false;
       }
     }
-  }
-  if (active) {
-    endLine = markdown.split('\n').length;
-    active = false;
+    if (active) {
+      endLine = prevToken.map?.[1] || endLine;
+      // console.log('Setting endLine to ' + endLine, { prevToken, token, headingLevel });
+    }
   }
   if (startLine === undefined || endLine === undefined) {
     return undefined;
+  } else {
+    return [startLine, endLine];
   }
-  return selectLines(markdown, startLine, endLine).trim();
+}
+
+export function getSection(headings: string[], markdown: string): string | undefined {
+  const range = getSectionLineRange(headings, markdown);
+  if (!range) {
+    return undefined;
+  }
+  const [startLine, endLine] = range;
+  return selectLines(markdown, startLine, endLine);
 }
