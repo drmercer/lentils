@@ -1,6 +1,6 @@
 {
   "name": "@drmercer/lentils",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "author": "Dan Mercer",
   "license": "MIT",
   "description": "A hodge-podge of useful TypeScript",
