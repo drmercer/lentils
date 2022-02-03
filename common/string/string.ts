@@ -68,3 +68,15 @@ export function isUrl(str: string): boolean {
     return false;
   }
 }
+
+/**
+ * Extracts the given line range out of the text
+ *
+ * @param str The text
+ * @param start The starting line index, inclusive, 0-based
+ * @param end The ending line index, exclusive, 0-based
+ * @returns The given lines, or empty string if the line range is out of range
+ */
+export function selectLines(str: string, start: number, end: number): string {
+  return str.split(/\r?\n/g).slice(start, end).join('\n');
+}
